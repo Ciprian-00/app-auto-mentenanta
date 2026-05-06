@@ -60,13 +60,26 @@ const Notificari = ({ onRemindereUpdate }) => {
   const handleSalveazaData = async () => {
     if (!dataNoua) { toast.error('Selectează o dată validă'); return; }
     if (!editModal?.vehicul?._id) { toast.error('Vehiculul nu a fost găsit'); return; }
-    const campVehicul = TIP_TO_FIELD[editModal.tip];
-    if (!campVehicul) { toast.error('Tip document necunoscut'); return; }
 
     setSalvare(true);
     try {
-      await api.put(`/vehicles/${editModal.vehicul._id}`, { [campVehicul]: dataNoua });
-      toast.success('Data actualizată! Notificarea se va recalcula.');
+      const vehiculId = editModal.vehicul._id;
+      const campVehicul = TIP_TO_FIELD[editModal.tip];
+
+      if (campVehicul) {
+        // Document fix (ITP / RCA / Rovinieta)
+        await api.put(`/vehicles/${vehiculId}`, { [campVehicul]: dataNoua });
+      } else {
+        // Document custom — actualizează în array-ul documenteCustom
+        const { data: vehicul } = await api.get(`/vehicles/${vehiculId}`);
+        const docsActualizate = (vehicul.documenteCustom || []).map(d =>
+          d.nume === editModal.tip ? { ...d, dataExpirare: dataNoua } : d
+        );
+        await api.put(`/vehicles/${vehiculId}`, { ...vehicul, documenteCustom: docsActualizate });
+      }
+
+      await api.post(`/reminders/genereaza/${vehiculId}`);
+      toast.success('Data actualizată!');
       setEditModal(null);
       await fetchRemindere();
     } catch {
@@ -105,7 +118,7 @@ const Notificari = ({ onRemindereUpdate }) => {
 
   const renderCard = (r) => {
     const c = getColors(r.status);
-    const areEditare = !!TIP_TO_FIELD[r.tip];
+    const areEditare = true;
     return (
       <div key={r._id} style={{ ...s.card, borderLeft: `3px solid ${c.border}` }}>
         <div style={s.cardTop}>

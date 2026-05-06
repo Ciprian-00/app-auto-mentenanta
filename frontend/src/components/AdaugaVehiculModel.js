@@ -13,7 +13,8 @@ const ANI = (() => {
 const FORM_GOL = {
   marca: '', model: '', an: '', motor: '',
   numarInmatriculare: '', kilometrajCurent: '',
-  dataITP: '', dataRCA: '', dataRovinieta: ''
+  dataITP: '', dataRCA: '', dataRovinieta: '',
+  ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: ''
 };
 
 const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
@@ -68,12 +69,17 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
     setSalvare(true);
     try {
       const payload = {
-        ...form,
-        an: Number(form.an),
+        marca: form.marca, model: form.model,
+        an: Number(form.an), motor: form.motor,
+        numarInmatriculare: form.numarInmatriculare,
         kilometrajCurent: Number(form.kilometrajCurent) || 0,
         dataITP: toNullableDate(form.dataITP),
         dataRCA: toNullableDate(form.dataRCA),
         dataRovinieta: toNullableDate(form.dataRovinieta),
+        ultimulSchimbUlei: {
+          data: toNullableDate(form.ultimulSchimbUleiData),
+          kilometraj: Number(form.ultimulSchimbUleiKilometraj) || null
+        }
       };
 
       const res = await api.post('/vehicles', payload);
@@ -207,6 +213,19 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
           <div style={s.field}>
             <label style={s.label}>DATA ROVINIETĂ</label>
             <input type="date" value={form.dataRovinieta} onChange={e => set('dataRovinieta', e.target.value)} style={s.dateInput} />
+          </div>
+
+          <div style={s.divider}>ULTIMUL SCHIMB ULEI</div>
+
+          <div style={s.row}>
+            <div style={s.field}>
+              <label style={s.label}>DATA SCHIMB</label>
+              <input type="date" value={form.ultimulSchimbUleiData} onChange={e => set('ultimulSchimbUleiData', e.target.value)} style={s.dateInput} />
+            </div>
+            <div style={s.field}>
+              <label style={s.label}>KM LA SCHIMB</label>
+              <input type="number" value={form.ultimulSchimbUleiKilometraj} onChange={e => set('ultimulSchimbUleiKilometraj', e.target.value)} placeholder="ex: 85000" style={s.input} />
+            </div>
           </div>
 
           <button type="submit" style={s.saveBtn} disabled={salvare}>

@@ -23,7 +23,11 @@ const vehicleSchema = new mongoose.Schema({
   ultimulSchimbUlei: {
     data: { type: Date },
     kilometraj: { type: Number }
-  }
+  },
+  documenteCustom: [{
+    nume: { type: String, required: true },
+    dataExpirare: { type: Date }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Vehicle', vehicleSchema);

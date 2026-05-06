@@ -13,8 +13,7 @@ const reminderSchema = new mongoose.Schema({
   },
   tip: {
     type: String,
-    required: true,
-    enum: ['ITP', 'RCA', 'Rovinieta', 'Ulei', 'Anvelope', 'Distributie', 'Custom']
+    required: true
   },
   dataExpirare: { type: Date, required: true },
   zileInainte: { type: Number, default: 30 },

@@ -8,14 +8,16 @@ const adaugaVehicul = async (req, res) => {
     const {
       marca, model, an, motor, vin,
       numarInmatriculare, kilometrajCurent,
-      dataITP, dataRCA, dataRovinieta
+      dataITP, dataRCA, dataRovinieta,
+      ultimulSchimbUlei, documenteCustom
     } = req.body;
 
     const vehicul = await Vehicle.create({
       utilizator: req.user.id,
       marca, model, an, motor, vin,
       numarInmatriculare, kilometrajCurent,
-      dataITP, dataRCA, dataRovinieta
+      dataITP, dataRCA, dataRovinieta,
+      ultimulSchimbUlei, documenteCustom
     });
 
     res.status(201).json(vehicul);

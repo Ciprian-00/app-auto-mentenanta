@@ -206,7 +206,10 @@ const Vehicule = () => {
     const acte = [
       { nume: 'ITP', data: vehicul.dataITP },
       { nume: 'RCA', data: vehicul.dataRCA },
-      { nume: 'ROVINIETA', data: vehicul.dataRovinieta }
+      { nume: 'ROVINIETA', data: vehicul.dataRovinieta },
+      ...(vehicul.documenteCustom || [])
+        .filter(d => d.dataExpirare)
+        .map(d => ({ nume: d.nume, data: d.dataExpirare }))
     ].filter(act => act.data);
 
     if (acte.length === 0) return { textBadge: 'DATE INCOMPLETE', mesajStare: 'ADAUGĂ ACTE', culoare: '#64748b' };

@@ -47,23 +47,42 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
     });
   }
 
-  for (const reminder of remindereDeCreat) {
-    const existent = await Reminder.findOne({
-      vehicul: vehiculId,
-      tip: reminder.tip,
-      utilizator: utilizatorId
-    });
+  // Documente custom — sterge cele vechi, recreeaza din lista curenta
+  await Reminder.deleteMany({
+    vehicul: vehiculId,
+    utilizator: utilizatorId,
+    tip: { $nin: ['ITP', 'RCA', 'Rovinieta'] }
+  });
 
+  for (const doc of vehicul.documenteCustom || []) {
+    if (!doc.dataExpirare) continue;
+    remindereDeCreat.push({
+      utilizator: utilizatorId,
+      vehicul: vehiculId,
+      tip: doc.nume,
+      dataExpirare: doc.dataExpirare,
+      zileInainte: 30,
+      mesaj: `${doc.nume} pentru ${vehicul.marca} ${vehicul.model} expiră pe ${new Date(doc.dataExpirare).toLocaleDateString('ro-RO')}`
+    });
+  }
+
+  // Documente fixe (ITP/RCA/Rovinieta) — upsert
+  const FIXE = ['ITP', 'RCA', 'Rovinieta'];
+  for (const reminder of remindereDeCreat.filter(r => FIXE.includes(r.tip))) {
+    const existent = await Reminder.findOne({ vehicul: vehiculId, tip: reminder.tip, utilizator: utilizatorId });
     if (!existent) {
-      // Nu exista deloc - creeaza
       await Reminder.create(reminder);
     } else {
-      // Exista - actualizeaza si undismiss automat
       existent.dataExpirare = reminder.dataExpirare;
       existent.mesaj = reminder.mesaj;
-      existent.dismissed = false; // Auto-undismiss cand se schimba data
+      existent.dismissed = false;
       await existent.save();
     }
+  }
+
+  // Documente custom — create direct (au fost sterse mai sus)
+  for (const reminder of remindereDeCreat.filter(r => !FIXE.includes(r.tip))) {
+    await Reminder.create(reminder);
   }
 };
 

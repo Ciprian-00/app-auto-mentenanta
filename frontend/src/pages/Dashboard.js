@@ -181,9 +181,13 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
                 const stITP = getStatusDoc(v.dataITP);
                 const stRCA = getStatusDoc(v.dataRCA);
                 const stRov = getStatusDoc(v.dataRovinieta);
-                const culoare = [stITP, stRCA, stRov].some(st => st.culoare === '#ff4d4d')
+                const stCustom = (v.documenteCustom || [])
+                  .filter(d => d.dataExpirare)
+                  .map(d => getStatusDoc(d.dataExpirare));
+                const toateStatusuri = [stITP, stRCA, stRov, ...stCustom];
+                const culoare = toateStatusuri.some(st => st.culoare === '#ff4d4d')
                   ? '#ff4d4d'
-                  : [stITP, stRCA, stRov].some(st => st.culoare === '#f59e0b')
+                  : toateStatusuri.some(st => st.culoare === '#f59e0b')
                     ? '#f59e0b'
                     : '#10b981';
 

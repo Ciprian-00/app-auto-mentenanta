@@ -128,13 +128,9 @@ const Scanner = () => {
       // Salvează datele brute în ref — folosit de useEffect-uri
       ocrRef.current = d;
 
-      // Datele extra (informaționale, nu intră direct în formular)
       setOcrExtra({
         combustibil: d.combustibil || null,
         cilindree: d.cilindree || null,
-        putereKw: d.putereKw || null,
-        culoare: d.culoare || null,
-        nrLocuri: d.nrLocuri || null,
       });
 
       // Pre-completează formularul cu ce s-a extras
@@ -315,20 +311,6 @@ const Scanner = () => {
               <span>Verifică datele extrase și completează câmpurile lipsă</span>
             </div>
 
-            {/* Sumar date extra din document */}
-            {ocrExtra && (ocrExtra.combustibil || ocrExtra.cilindree || ocrExtra.putereKw || ocrExtra.culoare || ocrExtra.nrLocuri) && (
-              <div style={s.ocrSumar}>
-                <p style={s.ocrSumarTitlu}>DATE SUPLIMENTARE DIN DOCUMENT</p>
-                <div style={s.ocrSumarGrid}>
-                  {ocrExtra.combustibil && <CampOcr label="COMBUSTIBIL" val={ocrExtra.combustibil} />}
-                  {ocrExtra.cilindree && <CampOcr label="CILINDREE" val={`${ocrExtra.cilindree} cm³`} />}
-                  {ocrExtra.putereKw && <CampOcr label="PUTERE" val={`${ocrExtra.putereKw} kW`} />}
-                  {ocrExtra.culoare && <CampOcr label="CULOARE" val={ocrExtra.culoare} />}
-                  {ocrExtra.nrLocuri && <CampOcr label="NR. LOCURI" val={String(ocrExtra.nrLocuri)} />}
-                </div>
-              </div>
-            )}
-
             <div style={s.sectiune}>IDENTIFICARE VEHICUL</div>
 
             <div style={s.formRow}>
@@ -449,13 +431,6 @@ const Scanner = () => {
 
 // ─── Componente mici ──────────────────────────────────────────────────────────
 
-const CampOcr = ({ label, val }) => (
-  <div style={s.ocrCamp}>
-    <span style={s.ocrLabel}>{label}</span>
-    <span style={s.ocrVal}>{val}</span>
-  </div>
-);
-
 const IconUpload = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -561,19 +536,6 @@ const s = {
     borderRadius: '10px', padding: '12px 14px',
     fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.5,
   },
-  ocrSumar: {
-    backgroundColor: '#13161f', border: '1px solid rgba(255,255,255,0.05)',
-    borderRadius: '12px', padding: '14px',
-  },
-  ocrSumarTitlu: { fontSize: '0.6rem', color: '#64748b', fontWeight: '800', letterSpacing: '1.5px', marginBottom: '10px' },
-  ocrSumarGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' },
-  ocrCamp: {
-    backgroundColor: '#0b0e14', border: '1px solid rgba(255,255,255,0.04)',
-    borderRadius: '8px', padding: '9px 12px',
-    display: 'flex', flexDirection: 'column', gap: '3px',
-  },
-  ocrLabel: { fontSize: '0.58rem', color: '#64748b', fontWeight: '700', letterSpacing: '1px' },
-  ocrVal: { fontSize: '0.82rem', color: '#fff', fontWeight: '700' },
   sectiune: { fontSize: '0.62rem', color: '#00e5ff', fontWeight: '800', letterSpacing: '2px', paddingTop: '4px' },
   formRow: { display: 'flex', gap: '12px' },
   field: { flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' },
