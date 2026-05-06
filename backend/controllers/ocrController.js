@@ -1,6 +1,4 @@
 const { extrageText, parseazaDateVehicul } = require('../services/ocrService');
-const path = require('path');
-const fs = require('fs');
 
 const proceseazaImagine = async (req, res) => {
   try {
@@ -8,17 +6,16 @@ const proceseazaImagine = async (req, res) => {
       return res.status(400).json({ mesaj: 'Nu a fost incarcata nicio imagine' });
     }
 
-    const caleImagine = path.join(__dirname, '..', req.file.path);
+    console.log('Procesez imaginea:', req.file.originalname, req.file.size, 'bytes');
 
-    console.log('Procesez imaginea:', caleImagine);
+    // req.file.buffer — imagine în memorie (memory storage)
+    const textExtras = await extrageText(req.file.buffer);
 
-    const textExtras = await extrageText(caleImagine);
+    console.log('\n=== TEXT BRUT OCR ===\n', textExtras, '\n====================\n');
+
     const dateVehicul = parseazaDateVehicul(textExtras);
 
-    // Sterge imaginea dupa procesare
-    fs.unlink(caleImagine, (err) => {
-      if (err) console.error('Eroare stergere imagine:', err);
-    });
+    console.log('DATE EXTRASE:', JSON.stringify(dateVehicul, null, 2));
 
     res.json({
       succes: true,
@@ -27,6 +24,7 @@ const proceseazaImagine = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Eroare OCR:', error.message);
     res.status(500).json({ mesaj: error.message });
   }
 };

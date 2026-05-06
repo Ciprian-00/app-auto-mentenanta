@@ -4,7 +4,7 @@ const vehicleSpecSchema = new mongoose.Schema({
   marca: {
     type: String,
     required: true,
-    enum: ['Volkswagen', 'Dacia', 'BMW', 'Audi', 'Renault', 'Mercedes-Benz']
+    enum: ['Volkswagen', 'Dacia', 'BMW', 'Audi', 'Renault', 'Mercedes-Benz', 'Skoda', 'Toyota', 'Ford']
   },
   model: { type: String, required: true },
   anStart: { type: Number, required: true },

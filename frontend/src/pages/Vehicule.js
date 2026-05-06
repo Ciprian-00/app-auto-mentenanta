@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 
-const MARCI = ['Audi', 'BMW', 'Dacia', 'Mercedes-Benz', 'Renault', 'Volkswagen'];
+const MARCI = ['Audi', 'BMW', 'Dacia', 'Ford', 'Mercedes-Benz', 'Renault', 'Skoda', 'Toyota', 'Volkswagen'];
 
 const ANI = (() => {
   const lista = [];

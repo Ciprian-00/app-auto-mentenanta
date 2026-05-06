@@ -600,6 +600,37 @@ const specs = [
     filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
     intervalDistributie: 0, intervalLichidFrana: 24 },
 
+  // Passat B5 / B5.5 (1996-2005)
+  { marca: 'Volkswagen', model: 'Passat', anStart: 1996, anStop: 2005, motor: '1.8 T 150', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 60000, intervalLichidFrana: 24 },
+
+  { marca: 'Volkswagen', model: 'Passat', anStart: 1996, anStop: 2005, motor: '1.9 TDI 101', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 90000, intervalLichidFrana: 24 },
+
+  { marca: 'Volkswagen', model: 'Passat', anStart: 1996, anStop: 2005, motor: '1.9 TDI 130', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 90000, intervalLichidFrana: 24 },
+
+  { marca: 'Volkswagen', model: 'Passat', anStart: 1996, anStop: 2005, motor: '2.5 TDI 150', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 6.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 90000, intervalLichidFrana: 24 },
+
+  { marca: 'Volkswagen', model: 'Passat', anStart: 1996, anStop: 2005, motor: '2.0 TDI 136', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
   // Passat B6 (2005-2010)
   { marca: 'Volkswagen', model: 'Passat', anStart: 2005, anStop: 2010, motor: '1.9 TDI 105', tipCombustibil: 'Diesel',
     ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
@@ -693,6 +724,337 @@ const specs = [
   { marca: 'Volkswagen', model: 'Tiguan', anStart: 2016, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina',
     ulei: { tip: '0W-20', cantitate: 4.6, intervalKm: 15000, intervalLuni: 12 },
     anvelope: { fata: '235/50 R18', spate: '235/50 R18' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // ===== SKODA =====
+
+  // Octavia Mk1 (1996-2004)
+  { marca: 'Skoda', model: 'Octavia', anStart: 1996, anStop: 2004, motor: '1.6 MPI 101', tipCombustibil: 'Benzina',
+    ulei: { tip: '10W-40', cantitate: 4.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 60000, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 1996, anStop: 2004, motor: '1.9 TDI 90', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 90000, intervalLichidFrana: 24 },
+
+  // Octavia Mk2 (2004-2013)
+  { marca: 'Skoda', model: 'Octavia', anStart: 2004, anStop: 2013, motor: '1.6 MPI 102', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 4.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 2004, anStop: 2013, motor: '1.9 TDI 105', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 90000, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 2004, anStop: 2013, motor: '2.0 TDI 140', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 2004, anStop: 2013, motor: '1.4 TSI 122', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 4.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Octavia Mk3 (2013-2020)
+  { marca: 'Skoda', model: 'Octavia', anStart: 2013, anStop: 2020, motor: '1.0 TSI 115', tipCombustibil: 'Benzina',
+    ulei: { tip: '0W-20', cantitate: 3.6, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 2013, anStop: 2020, motor: '1.6 TDI 115', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 775' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 2013, anStop: 2020, motor: '2.0 TDI 150', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/45 R17', spate: '225/45 R17' },
+    filtreSchimb: { filtruUlei: 'OC 575', filtruAer: 'LX 2059', filtryCombustibil: 'KL 775' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Octavia Mk4 (2020-prezent)
+  { marca: 'Skoda', model: 'Octavia', anStart: 2020, anStop: null, motor: '1.0 TSI 110', tipCombustibil: 'Benzina',
+    ulei: { tip: '0W-20', cantitate: 3.6, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Octavia', anStart: 2020, anStop: null, motor: '2.0 TDI 150', tipCombustibil: 'Diesel',
+    ulei: { tip: '0W-20', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/45 R17', spate: '225/45 R17' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Fabia (2000-2014)
+  { marca: 'Skoda', model: 'Fabia', anStart: 2000, anStop: 2014, motor: '1.2 HTP 65', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 3.2, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '175/65 R14', spate: '175/65 R14' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Fabia', anStart: 2000, anStop: 2014, motor: '1.4 MPI 75', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 3.6, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 60000, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Fabia', anStart: 2000, anStop: 2014, motor: '1.4 TDI 80', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 3.6, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Fabia (2014-prezent)
+  { marca: 'Skoda', model: 'Fabia', anStart: 2014, anStop: null, motor: '1.0 MPI 60', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 3.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Fabia', anStart: 2014, anStop: null, motor: '1.0 TSI 95', tipCombustibil: 'Benzina',
+    ulei: { tip: '0W-20', cantitate: 3.6, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '195/55 R15', spate: '195/55 R15' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Superb Mk2 (2008-2015)
+  { marca: 'Skoda', model: 'Superb', anStart: 2008, anStop: 2015, motor: '1.8 TSI 160', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-40', cantitate: 4.6, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/55 R16', spate: '225/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 575', filtruAer: 'LX 2059', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Superb', anStart: 2008, anStop: 2015, motor: '2.0 TDI 140', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/55 R16', spate: '225/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 575', filtruAer: 'LX 2059', filtryCombustibil: 'KL 775' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Superb Mk3 (2015-prezent)
+  { marca: 'Skoda', model: 'Superb', anStart: 2015, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina',
+    ulei: { tip: '0W-20', cantitate: 4.6, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/50 R17', spate: '225/50 R17' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Skoda', model: 'Superb', anStart: 2015, anStop: null, motor: '2.0 TDI 150', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/50 R17', spate: '225/50 R17' },
+    filtreSchimb: { filtruUlei: 'OC 575', filtruAer: 'LX 2059', filtryCombustibil: 'KL 775' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // ===== TOYOTA =====
+
+  // Yaris Mk2 (2005-2011)
+  { marca: 'Toyota', model: 'Yaris', anStart: 2005, anStop: 2011, motor: '1.0 VVT-i 69', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.4, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '175/65 R14', spate: '175/65 R14' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Yaris', anStart: 2005, anStop: 2011, motor: '1.3 VVT-i 87', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.7, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Yaris', anStart: 2005, anStop: 2011, motor: '1.4 D-4D 90', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.2, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Yaris Mk3 (2011-2020)
+  { marca: 'Toyota', model: 'Yaris', anStart: 2011, anStop: 2020, motor: '1.0 VVT-i 69', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.4, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '175/65 R15', spate: '175/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Yaris', anStart: 2011, anStop: 2020, motor: '1.33 VVT-i 99', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 4.2, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Yaris Mk4 (2020-prezent)
+  { marca: 'Toyota', model: 'Yaris', anStart: 2020, anStop: null, motor: '1.0 VVT-i 72', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.4, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '185/65 R15', spate: '185/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Yaris', anStart: 2020, anStop: null, motor: '1.5 Hybrid 116', tipCombustibil: 'Hibrid',
+    ulei: { tip: '0W-20', cantitate: 4.2, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '195/55 R16', spate: '195/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Corolla E150 (2006-2013)
+  { marca: 'Toyota', model: 'Corolla', anStart: 2006, anStop: 2013, motor: '1.4 VVT-i 97', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.7, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Corolla', anStart: 2006, anStop: 2013, motor: '1.6 VVT-i 124', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.9, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Corolla', anStart: 2006, anStop: 2013, motor: '2.0 D-4D 91', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Corolla E170 (2013-2018)
+  { marca: 'Toyota', model: 'Corolla', anStart: 2013, anStop: 2018, motor: '1.6 VVT-i 132', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.9, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Corolla', anStart: 2013, anStop: 2018, motor: '1.4 D-4D 90', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.2, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Corolla E210 (2019-prezent)
+  { marca: 'Toyota', model: 'Corolla', anStart: 2019, anStop: null, motor: '1.2 Turbo 116', tipCombustibil: 'Benzina',
+    ulei: { tip: '0W-16', cantitate: 4.2, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Corolla', anStart: 2019, anStop: null, motor: '1.8 Hybrid 122', tipCombustibil: 'Hibrid',
+    ulei: { tip: '0W-20', cantitate: 4.2, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '215/45 R17', spate: '215/45 R17' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Toyota', model: 'Corolla', anStart: 2019, anStop: null, motor: '2.0 Hybrid 184', tipCombustibil: 'Hibrid',
+    ulei: { tip: '0W-20', cantitate: 4.6, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/40 R18', spate: '225/40 R18' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // ===== FORD =====
+
+  // Focus Mk2 (2004-2011)
+  { marca: 'Ford', model: 'Focus', anStart: 2004, anStop: 2011, motor: '1.4 Duratec 80', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 4.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2004, anStop: 2011, motor: '1.6 Duratec 100', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2004, anStop: 2011, motor: '1.6 TDCi 90', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/65 R15', spate: '195/65 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2004, anStop: 2011, motor: '1.8 TDCi 115', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.5, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2004, anStop: 2011, motor: '2.0 TDCi 136', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 5.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Focus Mk3 (2011-2018)
+  { marca: 'Ford', model: 'Focus', anStart: 2011, anStop: 2018, motor: '1.0 EcoBoost 125', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-20', cantitate: 3.8, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2011, anStop: 2018, motor: '1.5 TDCi 120', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2011, anStop: 2018, motor: '2.0 TDCi 150', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 5.0, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/45 R17', spate: '225/45 R17' },
+    filtreSchimb: { filtruUlei: 'OC 986', filtruAer: 'LX 5062', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Focus Mk4 (2018-prezent)
+  { marca: 'Ford', model: 'Focus', anStart: 2018, anStop: null, motor: '1.0 EcoBoost 125', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-20', cantitate: 3.8, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2018, anStop: null, motor: '1.5 EcoBoost 150', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-20', cantitate: 4.5, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '225/45 R17', spate: '225/45 R17' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Focus', anStart: 2018, anStop: null, motor: '1.5 EcoBlue 120', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.3, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '205/55 R16', spate: '205/55 R16' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Fiesta Mk6 (2008-2017)
+  { marca: 'Ford', model: 'Fiesta', anStart: 2008, anStop: 2017, motor: '1.25 Duratec 82', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.3, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Fiesta', anStart: 2008, anStop: 2017, motor: '1.4 Duratec 96', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-30', cantitate: 3.6, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '195/50 R15', spate: '195/50 R15' },
+    filtreSchimb: { filtruUlei: 'OC 295', filtruAer: 'LX 914', filtryCombustibil: 'KL 149' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Fiesta', anStart: 2008, anStop: 2017, motor: '1.6 TDCi 95', tipCombustibil: 'Diesel',
+    ulei: { tip: '5W-30', cantitate: 4.0, intervalKm: 10000, intervalLuni: 12 },
+    anvelope: { fata: '185/60 R15', spate: '185/60 R15' },
+    filtreSchimb: { filtruUlei: 'OC 469', filtruAer: 'LX 3204', filtryCombustibil: 'KL 440' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  // Fiesta Mk7 (2017-prezent)
+  { marca: 'Ford', model: 'Fiesta', anStart: 2017, anStop: null, motor: '1.0 EcoBoost 95', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-20', cantitate: 3.8, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '195/55 R15', spate: '195/55 R15' },
+    filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
+    intervalDistributie: 0, intervalLichidFrana: 24 },
+
+  { marca: 'Ford', model: 'Fiesta', anStart: 2017, anStop: null, motor: '1.0 EcoBoost 125', tipCombustibil: 'Benzina',
+    ulei: { tip: '5W-20', cantitate: 3.8, intervalKm: 15000, intervalLuni: 12 },
+    anvelope: { fata: '195/55 R16', spate: '195/55 R16' },
     filtreSchimb: { filtruUlei: 'OC 1073', filtruAer: 'LX 3734', filtryCombustibil: 'KL 928' },
     intervalDistributie: 0, intervalLichidFrana: 24 },
 
