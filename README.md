@@ -1,12 +1,8 @@
-# CLAUDE.md
+# Auto-Mentenanta
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+A full-stack PWA for automotive maintenance management — tracking vehicles, maintenance logs, reminders (ITP, RCA, Rovinieta, oil changes), and scanning documents via OCR. The UI is in Romanian.
 
-## Project Overview
-
-Auto-Mentenanta is a full-stack PWA for automotive maintenance management — tracking vehicles, maintenance logs, reminders (ITP, RCA, Rovinieta, oil changes), and scanning documents via OCR. The UI strings are in Romanian.
-
-## Commands
+## Getting Started
 
 ### Backend (`backend/`)
 ```bash
@@ -18,15 +14,13 @@ npm start       # production
 ```bash
 npm start       # dev server on port 3000
 npm run build   # production build to build/
-npm test        # React Testing Library tests
+npm test        # run tests
 ```
 
 ## Environment Variables
 
 **Backend** (`.env`): `PORT`, `MONGO_URI`, `JWT_SECRET`  
 **Frontend** (`.env`): `REACT_APP_API_URL`
-
-Both projects require their `.env` files to be configured before running.
 
 ## Architecture
 
@@ -54,9 +48,9 @@ Express 5 REST API with MongoDB via Mongoose. Entry point: `server.js`.
 React 19 SPA with React Router 7, Tailwind CSS 4 (dark theme base color `#0b0e14`), and Axios.
 
 - `context/AuthContext.js` — Global auth state (user, login, register, logout); wraps entire app
-- `services/api.js` — Axios instance with base URL and JWT Authorization header interceptor; use this for all API calls, never raw `fetch` or a new axios instance
-- `components/PrivateRoute.js` — Guards authenticated routes; all app pages except `/login` and `/register` use this
-- `components/BottomNav.js` — Mobile bottom navigation; shows unread reminder count badge
+- `services/api.js` — Axios instance with base URL and JWT Authorization header interceptor
+- `components/PrivateRoute.js` — Guards authenticated routes
+- `components/BottomNav.js` — Mobile bottom navigation with reminder badge
 - `pages/` — One file per route: `Dashboard`, `Vehicule`, `DetaliiVehicul`, `Scanner`, `Notificari`, `Login`, `Register`
 
 **Route structure** (defined in `App.js`):
