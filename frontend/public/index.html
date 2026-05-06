@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+
+    <!-- PWA theme & status bar -->
+    <meta name="theme-color" content="#0b0e14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="AutoApp" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Prevent text selection callout on long-press (iOS) -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- PWA manifest -->
+    
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Apple touch icons (fallback for iOS) -->
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/icons/icon-192.png" />
+
+    <!-- Prevent FOUC -->
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0b0e14;
+        overscroll-behavior-y: contain;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #root {
+        min-height: 100dvh;
+      }
+    </style>
+
+    <title>Auto Mentenanță</title>
+  </head>
+  <body>
+    <noscript>Această aplicație necesită JavaScript activat.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

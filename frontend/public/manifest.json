@@ -1,0 +1,48 @@
+{
+  "name": "Auto Mentenanță",
+  "short_name": "AutoApp",
+  "description": "Sistem inteligent de monitorizare și recomandare pentru întreținerea autovehiculelor",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-view.png",
+      "sizes": "378x867",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Interfața Mobilă Auto Mentenanță"
+    },
+    {
+      "src": "/screenshots/desktop-view.png",
+      "sizes": "1919x949",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Interfața Desktop Auto Mentenanță"
+    }
+  ],
+  "categories": ["utilities", "automotive"],
+  "lang": "ro"
+}
