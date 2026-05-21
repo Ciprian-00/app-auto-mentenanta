@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const getSalut = () => {
   const h = new Date().getHours();
@@ -37,11 +38,17 @@ const getDocDots = (v) => {
   });
 };
 
+const INTERVALE = ['6L', '1A', 'TOT'];
+const CATEGORII = ['TOATE', 'SERVICE', 'DOC'];
+
 const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [vehicule, setVehicule] = useState([]);
   const [remindere, setRemindere] = useState([]);
+  const [cheltuieli, setCheltuieli] = useState([]);
+  const [intervalGrafic, setIntervalGrafic] = useState('1A');
+  const [categorieGrafic, setCategorieGrafic] = useState('TOATE');
   const [loading, setLoading] = useState(true);
 
   const fetchDate = useCallback(async () => {
@@ -52,6 +59,10 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
       setRemindere(resR.data);
       const urgente = resR.data.filter(r => r.status === 'expirat' || r.status === 'urgent').length;
       onRemindereUpdate?.(urgente);
+
+      // Fetch maintenance logs pentru toate vehiculele
+      const logs = await Promise.all(resV.data.map(v => api.get(`/maintenance/vehicul/${v._id}`).then(r => r.data).catch(() => [])));
+      setCheltuieli(logs.flat().filter(l => l.cost > 0));
     } catch {
       toast.error('Eroare la încărcarea datelor');
     } finally {
@@ -71,6 +82,42 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
       <p style={s.loadingText}>SE INIȚIALIZEAZĂ...</p>
     </div>
   );
+
+  const getDateGrafic = () => {
+    const acum = new Date();
+    const limitaInceput = new Date(acum);
+    if (intervalGrafic === '6L') limitaInceput.setMonth(acum.getMonth() - 6);
+    else if (intervalGrafic === '1A') limitaInceput.setFullYear(acum.getFullYear() - 1);
+    else limitaInceput.setFullYear(2000);
+
+    const filtrate = cheltuieli.filter(l => {
+      if (new Date(l.data) < limitaInceput) return false;
+      if (categorieGrafic === 'SERVICE') return l.categorie !== 'document';
+      if (categorieGrafic === 'DOC') return l.categorie === 'document';
+      return true;
+    });
+    if (filtrate.length === 0) return [];
+
+    // Grupare pe lună
+    const map = {};
+    filtrate.forEach(l => {
+      const d = new Date(l.data);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      map[key] = (map[key] || 0) + (l.cost || 0);
+    });
+
+    // Completează lunile lipsă cu 0
+    const result = [];
+    const cursor = new Date(limitaInceput.getFullYear(), limitaInceput.getMonth(), 1);
+    const sfarsit = new Date(acum.getFullYear(), acum.getMonth(), 1);
+    while (cursor <= sfarsit) {
+      const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+      const luna = cursor.toLocaleDateString('ro-RO', { month: 'short', year: intervalGrafic === 'TOT' ? '2-digit' : undefined });
+      result.push({ luna, cost: map[key] || 0 });
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return result;
+  };
 
   const getBannerConfig = () => {
     if (remindereExpirate.length > 0) return {
@@ -233,6 +280,27 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
                             ))}
                           </div>
                         )}
+                        {v.ultimulSchimbUlei?.data && (() => {
+                          const dataSchimb = new Date(v.ultimulSchimbUlei.data);
+                          const dataUrmatoare = new Date(dataSchimb);
+                          dataUrmatoare.setFullYear(dataUrmatoare.getFullYear() + 1);
+                          const kmLaSchimb = v.ultimulSchimbUlei.kilometraj || 0;
+                          const kmCurent = v.kilometrajCurent || 0;
+                          const depasitKm = kmCurent > 0 && kmLaSchimb > 0 && (kmCurent - kmLaSchimb) >= 10000;
+                          const zile = depasitKm ? -1 : Math.ceil((dataUrmatoare - new Date()) / (1000 * 60 * 60 * 24));
+                          const color = zile < 0 ? '#ff4d4d' : zile <= 30 ? '#f59e0b' : '#10b981';
+                          const sub = zile < 0 ? 'DEPĂȘIT' : zile <= 30 ? `${zile}z` : null;
+                          return (
+                            <div style={{ ...s.dotItem, marginTop: '6px' }}>
+                              <span style={{ ...s.dotCircle, backgroundColor: color, boxShadow: color !== '#10b981' ? `0 0 6px ${color}60` : 'none' }} />
+                              <span style={{ ...s.dotLabel, color: sub ? color : '#64748b' }}>
+                                Ulei · {dataSchimb.toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' })}
+                                {v.ultimulSchimbUlei.kilometraj ? ` · ${Number(v.ultimulSchimbUlei.kilometraj).toLocaleString('ro-RO')} km` : ''}
+                                {sub ? ` · ${sub}` : ''}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <polyline points="9 18 15 12 9 6" />
@@ -253,6 +321,69 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
           )}
         </section>
 
+        {/* CHELTUIELI SERVICE */}
+        {cheltuieli.length > 0 && (() => {
+          const cheltuieliFiltrate = categorieGrafic === 'SERVICE'
+            ? cheltuieli.filter(l => l.categorie !== 'document')
+            : categorieGrafic === 'DOC'
+            ? cheltuieli.filter(l => l.categorie === 'document')
+            : cheltuieli;
+          const dataGrafic = getDateGrafic();
+          const total = cheltuieliFiltrate.reduce((s, l) => s + (l.cost || 0), 0);
+          return (
+            <section style={s.sectiune}>
+              <div style={s.sectionHead}>
+                <h3 style={s.sectionTitle}>CHELTUIELI</h3>
+                <div style={s.intervalRow}>
+                  {INTERVALE.map(iv => (
+                    <button key={iv} onClick={() => setIntervalGrafic(iv)}
+                      style={{ ...s.intervalBtn, ...(intervalGrafic === iv ? s.intervalBtnActiv : {}) }}>
+                      {iv}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={s.categorieRow}>
+                {CATEGORII.map(cat => (
+                  <button key={cat} onClick={() => setCategorieGrafic(cat)}
+                    style={{ ...s.categorieBtn, ...(categorieGrafic === cat ? s.categorieBtnActiv : {}) }}>
+                    {cat === 'TOATE' ? 'Toate' : cat === 'SERVICE' ? 'Service' : 'Documente'}
+                  </button>
+                ))}
+              </div>
+              <div style={s.graficCard}>
+                <div style={s.graficHeader}>
+                  <div>
+                    <p style={s.graficTotal}>{total.toLocaleString('ro-RO')} lei</p>
+                    <p style={s.graficSub}>total înregistrat</p>
+                  </div>
+                  <p style={s.graficNrIntrari}>{cheltuieliFiltrate.length} intrări</p>
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={dataGrafic} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradCost" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#00e5ff" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#00e5ff" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                    <XAxis dataKey="luna" tick={{ fill: '#334155', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: '#334155', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v === 0 ? '' : v.toLocaleString('ro-RO')} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#0d1017', border: '1px solid rgba(0,229,255,0.15)', borderRadius: '12px', fontSize: '13px', padding: '10px 14px' }}
+                      labelStyle={{ color: '#64748b', fontWeight: 700, marginBottom: '4px', fontSize: '11px' }}
+                      itemStyle={{ color: '#00e5ff', fontWeight: 800 }}
+                      formatter={v => v > 0 ? [`${v.toLocaleString('ro-RO')} lei`, ''] : null}
+                      cursor={{ stroke: 'rgba(0,229,255,0.15)', strokeWidth: 1 }}
+                    />
+                    <Area type="monotone" dataKey="cost" stroke="#00e5ff" strokeWidth={2} fill="url(#gradCost)" dot={false} activeDot={{ r: 5, fill: '#00e5ff', stroke: '#0b0e14', strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          );
+        })()}
 
       </main>
     </div>
@@ -384,6 +515,37 @@ const s = {
     cursor: 'pointer', textAlign: 'center', fontFamily: '"Inter", sans-serif',
   },
 
+  // GRAFIC CHELTUIELI
+  graficCard: {
+    backgroundColor: '#12151e', border: '1px solid rgba(255,255,255,0.05)',
+    borderRadius: '16px', overflow: 'hidden', padding: '16px 16px 10px',
+  },
+  graficHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' },
+  graficTotal: { margin: 0, fontSize: '22px', fontWeight: '900', color: '#00e5ff', letterSpacing: '-0.5px' },
+  graficSub: { margin: '2px 0 0', fontSize: '10px', color: '#475569', fontWeight: '600' },
+  graficNrIntrari: { margin: 0, fontSize: '11px', color: '#334155', fontWeight: '700' },
+  intervalRow: { display: 'flex', gap: '4px' },
+  intervalBtn: {
+    background: 'none', border: 'none', outline: 'none',
+    color: '#334155', borderRadius: '8px', padding: '4px 10px',
+    fontSize: '10px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px',
+    fontFamily: '"Inter", sans-serif',
+  },
+  intervalBtnActiv: {
+    backgroundColor: 'rgba(0,229,255,0.12)', color: '#00e5ff',
+  },
+
+  // Filtre categorie grafic
+  categorieRow: { display: 'flex', gap: '6px', marginBottom: '12px' },
+  categorieBtn: {
+    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+    color: '#475569', borderRadius: '20px', padding: '5px 12px',
+    fontSize: '10px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.3px',
+    fontFamily: '"Inter", sans-serif', outline: 'none',
+  },
+  categorieBtnActiv: {
+    backgroundColor: 'rgba(0,229,255,0.12)', borderColor: 'rgba(0,229,255,0.3)', color: '#00e5ff',
+  },
 };
 
 export default Dashboard;

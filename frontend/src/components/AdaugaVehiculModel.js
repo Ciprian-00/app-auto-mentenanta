@@ -14,7 +14,8 @@ const FORM_GOL = {
   marca: '', model: '', an: '', motor: '',
   numarInmatriculare: '', kilometrajCurent: '',
   dataITP: '', dataRCA: '', dataRovinieta: '',
-  ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: ''
+  costITP: '', costRCA: '', costRovinieta: '',
+  ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: '', costUlei: ''
 };
 
 const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
@@ -90,6 +91,19 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
       }
 
       await api.post(`/reminders/genereaza/${vehicleId}`);
+
+      // Creare log-uri de cost pentru documente și ulei
+      const azi = new Date().toISOString().split('T')[0];
+      const loguriInitiale = [
+        form.costITP && { tip: 'ITP', categorie: 'document', data: form.dataITP || azi, cost: Number(form.costITP) },
+        form.costRCA && { tip: 'RCA', categorie: 'document', data: form.dataRCA || azi, cost: Number(form.costRCA) },
+        form.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: form.dataRovinieta || azi, cost: Number(form.costRovinieta) },
+        form.costUlei && form.ultimulSchimbUleiData && { tip: 'Schimb ulei', categorie: 'service', data: form.ultimulSchimbUleiData, kilometraj: Number(form.ultimulSchimbUleiKilometraj) || 0, cost: Number(form.costUlei) },
+      ].filter(Boolean);
+      if (loguriInitiale.length) {
+        await Promise.all(loguriInitiale.map(l => api.post(`/maintenance/vehicul/${vehicleId}`, l)));
+      }
+
       toast.success('Mașina a fost adăugată!');
       onSuccess?.();
       onClose();
@@ -205,14 +219,31 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
               <input type="date" value={form.dataITP} onChange={e => set('dataITP', e.target.value)} style={s.dateInput} />
             </div>
             <div style={s.field}>
-              <label style={s.label}>DATA RCA</label>
-              <input type="date" value={form.dataRCA} onChange={e => set('dataRCA', e.target.value)} style={s.dateInput} />
+              <label style={s.label}>COST ITP (lei)</label>
+              <input type="number" value={form.costITP} onChange={e => set('costITP', e.target.value)} placeholder="ex: 200" style={s.input} />
             </div>
           </div>
 
-          <div style={s.field}>
-            <label style={s.label}>DATA ROVINIETĂ</label>
-            <input type="date" value={form.dataRovinieta} onChange={e => set('dataRovinieta', e.target.value)} style={s.dateInput} />
+          <div style={s.row}>
+            <div style={s.field}>
+              <label style={s.label}>DATA RCA</label>
+              <input type="date" value={form.dataRCA} onChange={e => set('dataRCA', e.target.value)} style={s.dateInput} />
+            </div>
+            <div style={s.field}>
+              <label style={s.label}>COST RCA (lei)</label>
+              <input type="number" value={form.costRCA} onChange={e => set('costRCA', e.target.value)} placeholder="ex: 800" style={s.input} />
+            </div>
+          </div>
+
+          <div style={s.row}>
+            <div style={s.field}>
+              <label style={s.label}>DATA ROVINIETĂ</label>
+              <input type="date" value={form.dataRovinieta} onChange={e => set('dataRovinieta', e.target.value)} style={s.dateInput} />
+            </div>
+            <div style={s.field}>
+              <label style={s.label}>COST ROVINIETĂ (lei)</label>
+              <input type="number" value={form.costRovinieta} onChange={e => set('costRovinieta', e.target.value)} placeholder="ex: 28" style={s.input} />
+            </div>
           </div>
 
           <div style={s.divider}>ULTIMUL SCHIMB ULEI</div>
@@ -226,6 +257,11 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
               <label style={s.label}>KM LA SCHIMB</label>
               <input type="number" value={form.ultimulSchimbUleiKilometraj} onChange={e => set('ultimulSchimbUleiKilometraj', e.target.value)} placeholder="ex: 85000" style={s.input} />
             </div>
+          </div>
+
+          <div style={s.field}>
+            <label style={s.label}>COST ULEI (lei, opțional)</label>
+            <input type="number" value={form.costUlei} onChange={e => set('costUlei', e.target.value)} placeholder="ex: 280" style={s.input} />
           </div>
 
           <button type="submit" style={s.saveBtn} disabled={salvare}>

@@ -17,12 +17,19 @@ const DetaliiVehicul = () => {
   const [showUleiModal, setShowUleiModal] = useState(false);
   const [showDocModal, setShowDocModal] = useState(false);
   const [showDocCustomModal, setShowDocCustomModal] = useState(false);
+  const [showIstoricModal, setShowIstoricModal] = useState(false);
 
   const [nouKilometraj, setNouKilometraj] = useState('');
-  const [formUlei, setFormUlei] = useState({ data: '', kilometraj: '' });
-  const [formDoc, setFormDoc] = useState({ dataITP: '', dataRCA: '', dataRovinieta: '' });
-  const [formDocCustom, setFormDocCustom] = useState({ nume: '', dataExpirare: '' });
+  const [formUlei, setFormUlei] = useState({ data: '', kilometraj: '', cost: '' });
+  const [formDoc, setFormDoc] = useState({ dataITP: '', dataRCA: '', dataRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
+  const [formDocCustom, setFormDocCustom] = useState({ nume: '', dataExpirare: '', cost: '' });
   const [editDocCustomId, setEditDocCustomId] = useState(null);
+
+  const [istoric, setIstoric] = useState([]);
+  const [editIstoricId, setEditIstoricId] = useState(null);
+  const FORM_ISTORIC_GOL = { tip: '', data: '', kilometraj: '', descriere: '', cost: '', service: '' };
+  const SUGESTII_TIP = ['Revizie', 'Schimb ulei', 'Anvelope', 'Frâne', 'Distribuție', 'Reparație', 'ITP', 'Altele'];
+  const [formIstoric, setFormIstoric] = useState(FORM_ISTORIC_GOL);
 
   const fetchVehicul = useCallback(async () => {
     try {
@@ -33,6 +40,13 @@ const DetaliiVehicul = () => {
       navigate('/vehicule');
     }
   }, [id, navigate]);
+
+  const fetchIstoric = useCallback(async () => {
+    try {
+      const res = await api.get(`/maintenance/vehicul/${id}`);
+      setIstoric(res.data);
+    } catch { setIstoric([]); }
+  }, [id]);
 
   const fetchRecomandari = useCallback(async () => {
     setLoadingRec(true);
@@ -50,11 +64,45 @@ const DetaliiVehicul = () => {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await Promise.all([fetchVehicul(), fetchRecomandari()]);
+      await Promise.all([fetchVehicul(), fetchRecomandari(), fetchIstoric()]);
       setLoading(false);
     };
     init();
-  }, [fetchVehicul, fetchRecomandari]);
+  }, [fetchVehicul, fetchRecomandari, fetchIstoric]);
+
+  const handleSalveazaIstoric = async (e) => {
+    e.preventDefault();
+    if (!formIstoric.tip || !formIstoric.data || !formIstoric.kilometraj) {
+      toast.error('Completează tipul, data și kilometrajul'); return;
+    }
+    try {
+      const payload = {
+        tip: formIstoric.tip,
+        data: formIstoric.data,
+        kilometraj: Number(formIstoric.kilometraj),
+        descriere: formIstoric.descriere || undefined,
+        cost: formIstoric.cost ? Number(formIstoric.cost) : undefined,
+        service: formIstoric.service || undefined,
+      };
+      if (editIstoricId) {
+        await api.put(`/maintenance/${editIstoricId}`, payload);
+        toast.success('Intrare actualizată!');
+      } else {
+        await api.post(`/maintenance/vehicul/${id}`, payload);
+        toast.success('Intrare adăugată!');
+      }
+      setShowIstoricModal(false); setFormIstoric(FORM_ISTORIC_GOL); setEditIstoricId(null);
+      await fetchIstoric();
+    } catch { toast.error('Eroare la salvare'); }
+  };
+
+  const handleStergeIstoric = async (intrareId) => {
+    try {
+      await api.delete(`/maintenance/${intrareId}`);
+      toast.success('Intrare ștearsă');
+      await fetchIstoric();
+    } catch { toast.error('Eroare la ștergere'); }
+  };
 
   const handleActualizeazaKm = async (e) => {
     e.preventDefault();
@@ -72,9 +120,16 @@ const DetaliiVehicul = () => {
     if (!formUlei.data || !formUlei.kilometraj) { toast.error('Completează data și kilometrajul'); return; }
     try {
       await api.put(`/vehicles/${id}`, { ...vehicul, ultimulSchimbUlei: { data: formUlei.data, kilometraj: Number(formUlei.kilometraj) } });
+      await api.post(`/maintenance/vehicul/${id}`, {
+        tip: 'Schimb ulei',
+        data: formUlei.data,
+        kilometraj: Number(formUlei.kilometraj),
+        cost: formUlei.cost ? Number(formUlei.cost) : undefined,
+      });
+      await api.post(`/reminders/genereaza/${id}`);
       toast.success('Schimb ulei salvat!');
-      setShowUleiModal(false); setFormUlei({ data: '', kilometraj: '' });
-      await fetchVehicul(); await fetchRecomandari();
+      setShowUleiModal(false); setFormUlei({ data: '', kilometraj: '', cost: '' });
+      await fetchVehicul(); await fetchRecomandari(); await fetchIstoric();
     } catch { toast.error('Eroare la salvare'); }
   };
 
@@ -88,8 +143,18 @@ const DetaliiVehicul = () => {
         dataRovinieta: formDoc.dataRovinieta || vehicul.dataRovinieta
       });
       await api.post(`/reminders/genereaza/${id}`);
+      const azi = new Date().toISOString().split('T')[0];
+      const loguriDoc = [
+        formDoc.costITP && { tip: 'ITP', data: formDoc.dataITP || azi, cost: Number(formDoc.costITP) },
+        formDoc.costRCA && { tip: 'RCA', data: formDoc.dataRCA || azi, cost: Number(formDoc.costRCA) },
+        formDoc.costRovinieta && { tip: 'Rovinietă', data: formDoc.dataRovinieta || azi, cost: Number(formDoc.costRovinieta) },
+      ].filter(Boolean);
+      await Promise.all(loguriDoc.map(l => api.post(`/maintenance/vehicul/${id}`, { ...l, categorie: 'document' })));
+      if (loguriDoc.length) await fetchIstoric();
       toast.success('Documente actualizate!');
-      setShowDocModal(false); await fetchVehicul();
+      setShowDocModal(false);
+      setFormDoc({ dataITP: '', dataRCA: '', dataRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
+      await fetchVehicul();
     } catch { toast.error('Eroare la salvare'); }
   };
 
@@ -109,8 +174,16 @@ const DetaliiVehicul = () => {
       }
       await api.put(`/vehicles/${id}`, { ...vehicul, documenteCustom: docsActualizate });
       await api.post(`/reminders/genereaza/${id}`);
+      if (formDocCustom.cost && !editDocCustomId) {
+        const azi = new Date().toISOString().split('T')[0];
+        await api.post(`/maintenance/vehicul/${id}`, {
+          tip: formDocCustom.nume.trim(), categorie: 'document',
+          data: formDocCustom.dataExpirare || azi, cost: Number(formDocCustom.cost)
+        });
+        await fetchIstoric();
+      }
       toast.success(editDocCustomId ? 'Document actualizat!' : 'Document adăugat!');
-      setShowDocCustomModal(false); setFormDocCustom({ nume: '', dataExpirare: '' }); setEditDocCustomId(null);
+      setShowDocCustomModal(false); setFormDocCustom({ nume: '', dataExpirare: '', cost: '' }); setEditDocCustomId(null);
       await fetchVehicul();
     } catch { toast.error('Eroare la salvare'); }
   };
@@ -245,49 +318,32 @@ const DetaliiVehicul = () => {
           </section>
         )}
 
-        {/* DOCUMENTE — card unificat */}
+        {/* DOCUMENTE */}
         <section style={s.sectiune}>
           <div style={s.sectLabel}>DOCUMENTE</div>
           <div style={s.card}>
-
-            {/* Header cu buton editare */}
             <div style={s.cardHeader}>
               <span style={s.cardHeaderTitlu}>ITP · RCA · ROVINIETĂ</span>
-              <button onClick={() => { setFormDoc({ dataITP: toDateInput(vehicul.dataITP), dataRCA: toDateInput(vehicul.dataRCA), dataRovinieta: toDateInput(vehicul.dataRovinieta) }); setShowDocModal(true); }} style={s.editBtn}>
+              <button onClick={() => { setFormDoc({ dataITP: toDateInput(vehicul.dataITP), dataRCA: toDateInput(vehicul.dataRCA), dataRovinieta: toDateInput(vehicul.dataRovinieta), costITP: '', costRCA: '', costRovinieta: '' }); setShowDocModal(true); }} style={s.editBtn}>
                 EDITEAZĂ
               </button>
             </div>
-
-            {/* ITP */}
-            <div style={s.row}>
-              <span style={s.rowLabel}>ITP</span>
-              <div style={s.rowRight}>
-                <span style={s.rowVal}>{formateazaData(vehicul.dataITP)}</span>
-                {vehicul.dataITP && <span style={{ ...s.pill, backgroundColor: `${stITP.culoare}22`, color: stITP.culoare }}>{stITP.text}</span>}
+            {[
+              { label: 'ITP', st: stITP, data: vehicul.dataITP },
+              { label: 'RCA', st: stRCA, data: vehicul.dataRCA },
+              { label: 'Rovinietă', st: stRov, data: vehicul.dataRovinieta },
+            ].map((doc, i) => (
+              <div key={doc.label}>
+                {i > 0 && <div style={s.rowDiv} />}
+                <div style={s.row}>
+                  <span style={s.rowLabel}>{doc.label}</span>
+                  <div style={s.rowRight}>
+                    <span style={s.rowVal}>{formateazaData(doc.data)}</span>
+                    {doc.data && <span style={{ ...s.pill, backgroundColor: `${doc.st.culoare}22`, color: doc.st.culoare }}>{doc.st.text}</span>}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div style={s.rowDiv} />
-
-            {/* RCA */}
-            <div style={s.row}>
-              <span style={s.rowLabel}>RCA</span>
-              <div style={s.rowRight}>
-                <span style={s.rowVal}>{formateazaData(vehicul.dataRCA)}</span>
-                {vehicul.dataRCA && <span style={{ ...s.pill, backgroundColor: `${stRCA.culoare}22`, color: stRCA.culoare }}>{stRCA.text}</span>}
-              </div>
-            </div>
-            <div style={s.rowDiv} />
-
-            {/* ROVINIETA */}
-            <div style={s.row}>
-              <span style={s.rowLabel}>Rovinietă</span>
-              <div style={s.rowRight}>
-                <span style={s.rowVal}>{formateazaData(vehicul.dataRovinieta)}</span>
-                {vehicul.dataRovinieta && <span style={{ ...s.pill, backgroundColor: `${stRov.culoare}22`, color: stRov.culoare }}>{stRov.text}</span>}
-              </div>
-            </div>
-
-            {/* Documente custom */}
+            ))}
             {(vehicul.documenteCustom || []).map(doc => {
               const st = getStatusDoc(doc.dataExpirare);
               return (
@@ -298,69 +354,97 @@ const DetaliiVehicul = () => {
                     <div style={s.rowRight}>
                       <span style={s.rowVal}>{doc.dataExpirare ? formateazaData(doc.dataExpirare) : '—'}</span>
                       {doc.dataExpirare && <span style={{ ...s.pill, backgroundColor: `${st.culoare}22`, color: st.culoare }}>{st.text}</span>}
-                      <button onClick={() => { setEditDocCustomId(doc._id); setFormDocCustom({ nume: doc.nume, dataExpirare: toDateInput(doc.dataExpirare) }); setShowDocCustomModal(true); }} style={s.editRowBtn} title="Editează">✎</button>
-                      <button onClick={() => handleStergeDocCustom(doc._id)} style={s.delBtn} title="Șterge">✕</button>
+                      <button onClick={() => { setEditDocCustomId(doc._id); setFormDocCustom({ nume: doc.nume, dataExpirare: toDateInput(doc.dataExpirare) }); setShowDocCustomModal(true); }} style={s.editRowBtn}>✎</button>
+                      <button onClick={() => handleStergeDocCustom(doc._id)} style={s.delBtn}>✕</button>
                     </div>
                   </div>
                 </div>
               );
             })}
-
-            {/* Adaugă document */}
             <div style={s.rowDiv} />
             <button onClick={() => { setFormDocCustom({ nume: '', dataExpirare: '' }); setShowDocCustomModal(true); }} style={s.addRowBtn}>
               + Adaugă document
             </button>
-
           </div>
         </section>
 
-        {/* SCHIMB ULEI */}
+        {/* MENTENANȚĂ */}
         <section style={s.sectiune}>
-          <div style={s.sectLabel}>SCHIMB ULEI</div>
+          <div style={s.sectLabel}>MENTENANȚĂ</div>
           <div style={s.card}>
-            <div style={s.cardHeader}>
-              <span style={s.cardHeaderTitlu}>ULTIMUL SCHIMB ÎNREGISTRAT</span>
-              <button onClick={() => { setFormUlei({ data: toDateInput(vehicul?.ultimulSchimbUlei?.data), kilometraj: vehicul?.ultimulSchimbUlei?.kilometraj || '' }); setShowUleiModal(true); }} style={s.editBtn}>
-                {vehicul.ultimulSchimbUlei?.data ? 'ACTUALIZEAZĂ' : 'ADAUGĂ'}
-              </button>
+
+            {/* Rând ulei — status + actualizare */}
+            {(() => {
+              const u = vehicul.ultimulSchimbUlei;
+              let uleiColor = '#475569', uleiText = null;
+              if (u?.data) {
+                const dataUrmatoare = new Date(u.data);
+                dataUrmatoare.setFullYear(dataUrmatoare.getFullYear() + 1);
+                const depasitKm = (vehicul.kilometrajCurent || 0) > 0 && (u.kilometraj || 0) > 0 && ((vehicul.kilometrajCurent - u.kilometraj) >= 10000);
+                const zile = depasitKm ? -1 : Math.ceil((dataUrmatoare - new Date()) / (1000 * 60 * 60 * 24));
+                uleiColor = zile < 0 ? '#ff4d4d' : zile <= 30 ? '#fbbf24' : '#22d3a5';
+                uleiText = zile < 0 ? 'Depășit' : zile <= 30 ? `${zile}z` : 'La zi';
+              }
+              return (
+                <div style={s.row}>
+                  <div>
+                    <span style={s.rowLabel}>🛢 Schimb ulei</span>
+                    {u?.data
+                      ? <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#475569' }}>
+                          {formateazaData(u.data)} · {u.kilometraj?.toLocaleString('ro-RO')} km
+                          {specificatii?.ulei ? ` · ${specificatii.ulei.tip}` : ''}
+                        </p>
+                      : <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#334155' }}>Neînregistrat</p>
+                    }
+                  </div>
+                  <div style={s.rowRight}>
+                    {uleiText && <span style={{ ...s.pill, backgroundColor: `${uleiColor}22`, color: uleiColor }}>{uleiText}</span>}
+                    <button onClick={() => { setFormUlei({ data: toDateInput(u?.data), kilometraj: u?.kilometraj || '', cost: '' }); setShowUleiModal(true); }} style={s.editBtn}>
+                      {u?.data ? '✎' : 'ADAUGĂ'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Separator + titlu istoric */}
+            <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.05)', margin: '0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px' }}>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: '#334155', letterSpacing: '1.5px' }}>INTERVENȚII</span>
+              <button onClick={() => { setFormIstoric(FORM_ISTORIC_GOL); setEditIstoricId(null); setShowIstoricModal(true); }} style={s.editBtn}>+ ADAUGĂ</button>
             </div>
 
-            {vehicul.ultimulSchimbUlei?.data ? (
-              <>
-                <div style={s.row}>
-                  <span style={s.rowLabel}>Data schimb</span>
-                  <span style={s.rowVal}>{formateazaData(vehicul.ultimulSchimbUlei.data)}</span>
-                </div>
-                <div style={s.rowDiv} />
-                <div style={s.row}>
-                  <span style={s.rowLabel}>Kilometraj la schimb</span>
-                  <span style={s.rowVal}>{vehicul.ultimulSchimbUlei.kilometraj?.toLocaleString('ro-RO')} km</span>
-                </div>
-                {specificatii?.ulei && (
-                  <>
-                    <div style={s.rowDiv} />
-                    <div style={s.row}>
-                      <span style={s.rowLabel}>Tip ulei recomandat</span>
-                      <span style={{ ...s.rowVal, color: '#00e5ff' }}>{specificatii.ulei.tip}</span>
-                    </div>
-                    <div style={s.rowDiv} />
-                    <div style={s.row}>
-                      <span style={s.rowLabel}>Cantitate</span>
-                      <span style={s.rowVal}>{specificatii.ulei.cantitate} L</span>
-                    </div>
-                    <div style={s.rowDiv} />
-                    <div style={s.row}>
-                      <span style={s.rowLabel}>Interval recomandat</span>
-                      <span style={s.rowVal}>{specificatii.ulei.intervalKm?.toLocaleString()} km / {specificatii.ulei.intervalLuni} luni</span>
-                    </div>
-                  </>
-                )}
-              </>
-            ) : (
-              <div style={s.emptyRow}>
-                <span style={s.emptyText}>Nu ai înregistrat niciun schimb de ulei.</span>
+            {/* Lista intervenții */}
+            {istoric.length === 0 ? (
+              <div style={{ ...s.emptyRow, paddingTop: '8px' }}>
+                <span style={s.emptyText}>Nicio intervenție înregistrată.</span>
               </div>
+            ) : (
+              istoric.map((intr, i) => (
+                <div key={intr._id}>
+                  <div style={s.rowDiv} />
+                  <div style={{ ...s.row, alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '20px', backgroundColor: 'rgba(0,229,255,0.1)', color: '#00e5ff' }}>{intr.tip}</span>
+                        <span style={{ fontSize: '11px', color: '#475569' }}>
+                          {new Date(intr.data).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        {intr.cost != null && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: '700' }}>{intr.cost.toLocaleString('ro-RO')} lei</span>}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>{intr.kilometraj?.toLocaleString('ro-RO')} km</span>
+                        {intr.service && <span style={{ fontSize: '11px', color: '#64748b' }}>📍 {intr.service}</span>}
+                      </div>
+                      {intr.descriere && <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#94a3b8', lineHeight: '1.4' }}>{intr.descriere}</p>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button onClick={() => { setFormIstoric({ tip: intr.tip, data: intr.data?.split('T')[0], kilometraj: intr.kilometraj, descriere: intr.descriere || '', cost: intr.cost ?? '', service: intr.service || '' }); setEditIstoricId(intr._id); setShowIstoricModal(true); }} style={s.editRowBtn}>✎</button>
+                      <button onClick={() => handleStergeIstoric(intr._id)} style={s.delBtn}>✕</button>
+                    </div>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </section>
@@ -370,85 +454,28 @@ const DetaliiVehicul = () => {
           <section style={s.sectiune}>
             <div style={s.sectLabel}>SPECIFICAȚII TEHNICE</div>
             <div style={s.card}>
-
-              {specificatii.anvelope?.fata && (
-                <>
+              {[
+                specificatii.ulei?.tip && { label: 'Ulei recomandat', val: `${specificatii.ulei.tip} · ${specificatii.ulei.cantitate}L`, cyan: true },
+                specificatii.ulei?.intervalKm && { label: 'Interval ulei', val: `${specificatii.ulei.intervalKm.toLocaleString()} km / ${specificatii.ulei.intervalLuni} luni` },
+                specificatii.anvelope?.fata && { label: 'Anvelope față', val: specificatii.anvelope.fata },
+                specificatii.anvelope?.spate && { label: 'Anvelope spate', val: specificatii.anvelope.spate },
+                specificatii.intervalDistributie > 0 && { label: 'Distribuție', val: `${specificatii.intervalDistributie.toLocaleString()} km` },
+                specificatii.intervalLichidFrana && { label: 'Lichid frână', val: `La ${specificatii.intervalLichidFrana} luni` },
+                specificatii.filtreSchimb?.filtruUlei && { label: 'Filtru ulei', val: specificatii.filtreSchimb.filtruUlei, code: true },
+                specificatii.filtreSchimb?.filtruAer && { label: 'Filtru aer', val: specificatii.filtreSchimb.filtruAer, code: true },
+                specificatii.filtreSchimb?.filtryCombustibil && { label: 'Filtru combustibil', val: specificatii.filtreSchimb.filtryCombustibil, code: true },
+              ].filter(Boolean).map((item, i, arr) => (
+                <div key={item.label}>
+                  {i > 0 && <div style={s.rowDiv} />}
                   <div style={s.row}>
-                    <span style={s.rowLabel}>Anvelope față</span>
-                    <span style={s.rowVal}>{specificatii.anvelope.fata}</span>
+                    <span style={s.rowLabel}>{item.label}</span>
+                    {item.code
+                      ? <span style={s.filtruCode}>{item.val}</span>
+                      : <span style={{ ...s.rowVal, ...(item.cyan ? { color: '#00e5ff' } : {}) }}>{item.val}</span>
+                    }
                   </div>
-                  <div style={s.rowDiv} />
-                </>
-              )}
-              {specificatii.anvelope?.spate && (
-                <>
-                  <div style={s.row}>
-                    <span style={s.rowLabel}>Anvelope spate</span>
-                    <span style={s.rowVal}>{specificatii.anvelope.spate}</span>
-                  </div>
-                  <div style={s.rowDiv} />
-                </>
-              )}
-              {specificatii.intervalDistributie > 0 && (
-                <>
-                  <div style={s.row}>
-                    <span style={s.rowLabel}>Distribuție</span>
-                    <span style={s.rowVal}>{specificatii.intervalDistributie?.toLocaleString()} km</span>
-                  </div>
-                  <div style={s.rowDiv} />
-                </>
-              )}
-              {specificatii.intervalLichidFrana && (
-                <>
-                  <div style={s.row}>
-                    <span style={s.rowLabel}>Lichid frână</span>
-                    <span style={s.rowVal}>La {specificatii.intervalLichidFrana} luni</span>
-                  </div>
-                  <div style={s.rowDiv} />
-                </>
-              )}
-
-              {/* Filtre */}
-              {specificatii.filtreSchimb && (
-                <>
-                  {specificatii.filtreSchimb.filtruUlei && (
-                    <>
-                      <div style={s.row}>
-                        <span style={s.rowLabel}>Filtru ulei</span>
-                        <span style={s.filtruCode}>{specificatii.filtreSchimb.filtruUlei}</span>
-                      </div>
-                      <div style={s.rowDiv} />
-                    </>
-                  )}
-                  {specificatii.filtreSchimb.filtruAer && (
-                    <>
-                      <div style={s.row}>
-                        <span style={s.rowLabel}>Filtru aer</span>
-                        <span style={s.filtruCode}>{specificatii.filtreSchimb.filtruAer}</span>
-                      </div>
-                      <div style={s.rowDiv} />
-                    </>
-                  )}
-                  {specificatii.filtreSchimb.filtryCombustibil && (
-                    <>
-                      <div style={s.row}>
-                        <span style={s.rowLabel}>Filtru combustibil</span>
-                        <span style={s.filtruCode}>{specificatii.filtreSchimb.filtryCombustibil}</span>
-                      </div>
-                      <div style={s.rowDiv} />
-                    </>
-                  )}
-                </>
-              )}
-
-              {/* Ulei */}
-              {specificatii.ulei?.tip && (
-                <div style={s.row}>
-                  <span style={s.rowLabel}>Ulei recomandat</span>
-                  <span style={{ ...s.rowVal, color: '#00e5ff' }}>{specificatii.ulei.tip} · {specificatii.ulei.cantitate}L</span>
                 </div>
-              )}
-
+              ))}
             </div>
           </section>
         )}
@@ -496,13 +523,15 @@ const DetaliiVehicul = () => {
               <button onClick={() => setShowUleiModal(false)} style={s.closeBtn}>✕</button>
             </div>
             <form onSubmit={handleSalveazaUlei} style={s.modalForm}>
-              <label style={s.mLabel}>Data schimbului</label>
+              <label style={s.mLabel}>Data schimbului *</label>
               <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formUlei.data} onChange={e => setFormUlei({ ...formUlei, data: e.target.value })} required />
-              <label style={s.mLabel}>Kilometraj la schimb</label>
+              <label style={s.mLabel}>Kilometraj la schimb *</label>
               <input type="number" style={s.mInput} value={formUlei.kilometraj} onChange={e => setFormUlei({ ...formUlei, kilometraj: e.target.value })} placeholder="ex: 85000" required />
+              <label style={s.mLabel}>Cost (lei, opțional)</label>
+              <input type="number" style={s.mInput} value={formUlei.cost} onChange={e => setFormUlei({ ...formUlei, cost: e.target.value })} placeholder="ex: 280" />
               {specificatii?.ulei && (
                 <div style={s.infoBox}>
-                  <p style={s.infoText}>Tip ulei: <strong>{specificatii.ulei.tip}</strong> · Cantitate: <strong>{specificatii.ulei.cantitate} L</strong></p>
+                  <p style={s.infoText}>Tip ulei: <strong>{specificatii.ulei.tip}</strong> · Cantitate: <strong>{specificatii.ulei.cantitate} L</strong> · Interval: <strong>{specificatii.ulei.intervalKm?.toLocaleString()} km</strong></p>
                 </div>
               )}
               <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
@@ -520,12 +549,45 @@ const DetaliiVehicul = () => {
               <button onClick={() => setShowDocModal(false)} style={s.closeBtn}>✕</button>
             </div>
             <form onSubmit={handleSalveazaDoc} style={s.modalForm}>
-              <label style={s.mLabel}>Expirare ITP</label>
-              <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataITP} onChange={e => setFormDoc({ ...formDoc, dataITP: e.target.value })} />
-              <label style={s.mLabel}>Expirare RCA</label>
-              <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataRCA} onChange={e => setFormDoc({ ...formDoc, dataRCA: e.target.value })} />
-              <label style={s.mLabel}>Expirare Rovinietă</label>
-              <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataRovinieta} onChange={e => setFormDoc({ ...formDoc, dataRovinieta: e.target.value })} />
+              <div style={s.docGrup}>
+                <p style={s.docGrupLabel}>ITP</p>
+                <div style={s.docGrupRow}>
+                  <div style={{ flex: 2 }}>
+                    <label style={s.mLabel}>Dată expirare</label>
+                    <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataITP} onChange={e => setFormDoc({ ...formDoc, dataITP: e.target.value })} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={s.mLabel}>Cost (lei)</label>
+                    <input type="number" style={s.mInput} value={formDoc.costITP} onChange={e => setFormDoc({ ...formDoc, costITP: e.target.value })} placeholder="0" />
+                  </div>
+                </div>
+              </div>
+              <div style={s.docGrup}>
+                <p style={s.docGrupLabel}>RCA</p>
+                <div style={s.docGrupRow}>
+                  <div style={{ flex: 2 }}>
+                    <label style={s.mLabel}>Dată expirare</label>
+                    <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataRCA} onChange={e => setFormDoc({ ...formDoc, dataRCA: e.target.value })} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={s.mLabel}>Cost (lei)</label>
+                    <input type="number" style={s.mInput} value={formDoc.costRCA} onChange={e => setFormDoc({ ...formDoc, costRCA: e.target.value })} placeholder="0" />
+                  </div>
+                </div>
+              </div>
+              <div style={s.docGrup}>
+                <p style={s.docGrupLabel}>ROVINIETĂ</p>
+                <div style={s.docGrupRow}>
+                  <div style={{ flex: 2 }}>
+                    <label style={s.mLabel}>Dată expirare</label>
+                    <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataRovinieta} onChange={e => setFormDoc({ ...formDoc, dataRovinieta: e.target.value })} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={s.mLabel}>Cost (lei)</label>
+                    <input type="number" style={s.mInput} value={formDoc.costRovinieta} onChange={e => setFormDoc({ ...formDoc, costRovinieta: e.target.value })} placeholder="0" />
+                  </div>
+                </div>
+              </div>
               <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
             </form>
           </div>
@@ -534,11 +596,11 @@ const DetaliiVehicul = () => {
 
       {/* MODAL DOCUMENT CUSTOM */}
       {showDocCustomModal && (
-        <div style={s.overlay} onClick={() => { setShowDocCustomModal(false); setEditDocCustomId(null); setFormDocCustom({ nume: '', dataExpirare: '' }); }}>
+        <div style={s.overlay} onClick={() => { setShowDocCustomModal(false); setEditDocCustomId(null); setFormDocCustom({ nume: '', dataExpirare: '', cost: '' }); }}>
           <div style={s.modal} onClick={e => e.stopPropagation()}>
             <div style={s.modalHeader}>
               <h3 style={s.modalTitlu}>{editDocCustomId ? 'EDITEAZĂ DOCUMENT' : 'DOCUMENT NOU'}</h3>
-              <button onClick={() => { setShowDocCustomModal(false); setEditDocCustomId(null); setFormDocCustom({ nume: '', dataExpirare: '' }); }} style={s.closeBtn}>✕</button>
+              <button onClick={() => { setShowDocCustomModal(false); setEditDocCustomId(null); setFormDocCustom({ nume: '', dataExpirare: '', cost: '' }); }} style={s.closeBtn}>✕</button>
             </div>
             <form onSubmit={handleAdaugaDocCustom} style={s.modalForm}>
               <label style={s.mLabel}>Nume document</label>
@@ -547,6 +609,47 @@ const DetaliiVehicul = () => {
               <label style={s.mLabel}>Data expirare (opțional)</label>
               <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDocCustom.dataExpirare}
                 onChange={e => setFormDocCustom(f => ({ ...f, dataExpirare: e.target.value }))} />
+              {!editDocCustomId && (
+                <>
+                  <label style={s.mLabel}>Cost (lei, opțional)</label>
+                  <input type="number" style={s.mInput} value={formDocCustom.cost}
+                    onChange={e => setFormDocCustom(f => ({ ...f, cost: e.target.value }))} placeholder="ex: 500" />
+                </>
+              )}
+              <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ISTORIC MENTENANȚĂ */}
+      {showIstoricModal && (
+        <div style={s.overlay} onClick={() => { setShowIstoricModal(false); setEditIstoricId(null); setFormIstoric(FORM_ISTORIC_GOL); }}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <h3 style={s.modalTitlu}>{editIstoricId ? 'EDITEAZĂ INTERVENȚIE' : 'INTERVENȚIE NOUĂ'}</h3>
+              <button onClick={() => { setShowIstoricModal(false); setEditIstoricId(null); setFormIstoric(FORM_ISTORIC_GOL); }} style={s.closeBtn}>✕</button>
+            </div>
+            <form onSubmit={handleSalveazaIstoric} style={s.modalForm}>
+              <label style={s.mLabel}>Tip intervenție *</label>
+              <input
+                style={s.mInput} list="sugestii-tip" value={formIstoric.tip}
+                onChange={e => setFormIstoric(f => ({ ...f, tip: e.target.value }))}
+                placeholder="ex: Schimb ulei, Revizie..." required autoFocus
+              />
+              <datalist id="sugestii-tip">
+                {SUGESTII_TIP.map(t => <option key={t} value={t} />)}
+              </datalist>
+              <label style={s.mLabel}>Data *</label>
+              <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formIstoric.data} onChange={e => setFormIstoric(f => ({ ...f, data: e.target.value }))} required />
+              <label style={s.mLabel}>Kilometraj *</label>
+              <input type="number" style={s.mInput} value={formIstoric.kilometraj} onChange={e => setFormIstoric(f => ({ ...f, kilometraj: e.target.value }))} placeholder="ex: 85000" required />
+              <label style={s.mLabel}>Service / Atelier (opțional)</label>
+              <input style={s.mInput} value={formIstoric.service} onChange={e => setFormIstoric(f => ({ ...f, service: e.target.value }))} placeholder="ex: AutoService Cluj" />
+              <label style={s.mLabel}>Cost (lei, opțional)</label>
+              <input type="number" style={s.mInput} value={formIstoric.cost} onChange={e => setFormIstoric(f => ({ ...f, cost: e.target.value }))} placeholder="ex: 350" />
+              <label style={s.mLabel}>Descriere (opțional)</label>
+              <textarea style={{ ...s.mInput, resize: 'vertical', minHeight: '72px' }} value={formIstoric.descriere} onChange={e => setFormIstoric(f => ({ ...f, descriere: e.target.value }))} placeholder="Detalii despre intervenție..." />
               <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
             </form>
           </div>
@@ -695,6 +798,11 @@ const s = {
   infoBox: { backgroundColor: 'rgba(0,229,255,0.06)', border: '1px solid rgba(0,229,255,0.12)', borderRadius: '8px', padding: '11px 14px' },
   infoText: { margin: 0, fontSize: '0.8rem', color: '#94a3b8' },
   saveBtn: { backgroundColor: '#00e5ff', color: '#001f24', border: 'none', borderRadius: '8px', padding: '14px', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', marginTop: '4px', width: '100%' },
+
+  // Doc grup (în modal documente fixe)
+  docGrup: { display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' },
+  docGrupLabel: { margin: 0, fontSize: '0.6rem', fontWeight: '800', color: '#00e5ff', letterSpacing: '1.5px' },
+  docGrupRow: { display: 'flex', gap: '10px', alignItems: 'flex-end' },
 };
 
 export default DetaliiVehicul;
