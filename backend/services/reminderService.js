@@ -18,7 +18,6 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
   const spec = await VehicleSpec.findOne({
     marca: vehicul.marca,
     model: vehicul.model,
-    motor: vehicul.motor,
     anStart: { $lte: vehicul.an },
     $or: [{ anStop: null }, { anStop: { $gte: vehicul.an } }]
   });

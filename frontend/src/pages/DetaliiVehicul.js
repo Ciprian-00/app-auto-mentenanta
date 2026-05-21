@@ -161,7 +161,6 @@ const DetaliiVehicul = () => {
       await api.put(`/vehicles/${id}`, { ...vehicul, ultimulLichidFrana: { data: formLichidFrana.data } });
       await api.post(`/maintenance/vehicul/${id}`, {
         tip: 'Lichid frână', data: formLichidFrana.data,
-        kilometraj: vehicul.kilometrajCurent || 0,
         cost: formLichidFrana.cost ? Number(formLichidFrana.cost) : undefined,
       });
       await api.post(`/reminders/genereaza/${id}`);
