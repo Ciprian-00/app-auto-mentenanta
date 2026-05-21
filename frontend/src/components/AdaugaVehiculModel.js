@@ -13,7 +13,9 @@ const ANI = (() => {
 const FORM_GOL = {
   marca: '', model: '', an: '', motor: '',
   numarInmatriculare: '', kilometrajCurent: '',
-  dataITP: '', dataRCA: '', dataRovinieta: '',
+  obtinereITP: '', dataITP: '',
+  obtinereRCA: '', dataRCA: '',
+  obtinereRovinieta: '', dataRovinieta: '',
   costITP: '', costRCA: '', costRovinieta: '',
   ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: '', costUlei: ''
 };
@@ -53,6 +55,8 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
       setForm(f => ({ ...f, model: val, motor: '' }));
     } else if (camp === 'an') {
       setForm(f => ({ ...f, an: val, motor: '' }));
+    } else if (camp === '__batch') {
+      setForm(f => ({ ...f, ...val }));
     } else {
       setForm(f => ({ ...f, [camp]: val }));
     }
@@ -95,9 +99,9 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
       // Creare log-uri de cost pentru documente și ulei
       const azi = new Date().toISOString().split('T')[0];
       const loguriInitiale = [
-        form.costITP && { tip: 'ITP', categorie: 'document', data: form.dataITP || azi, cost: Number(form.costITP) },
-        form.costRCA && { tip: 'RCA', categorie: 'document', data: form.dataRCA || azi, cost: Number(form.costRCA) },
-        form.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: form.dataRovinieta || azi, cost: Number(form.costRovinieta) },
+        form.costITP && { tip: 'ITP', categorie: 'document', data: form.obtinereITP || azi, cost: Number(form.costITP) },
+        form.costRCA && { tip: 'RCA', categorie: 'document', data: form.obtinereRCA || azi, cost: Number(form.costRCA) },
+        form.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: form.obtinereRovinieta || azi, cost: Number(form.costRovinieta) },
         form.costUlei && form.ultimulSchimbUleiData && { tip: 'Schimb ulei', categorie: 'service', data: form.ultimulSchimbUleiData, kilometraj: Number(form.ultimulSchimbUleiKilometraj) || 0, cost: Number(form.costUlei) },
       ].filter(Boolean);
       if (loguriInitiale.length) {
@@ -211,40 +215,42 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
             </div>
           </div>
 
-          <div style={s.divider}>EXPIRĂRI DOCUMENTE</div>
+          <div style={s.divider}>DOCUMENTE</div>
 
-          <div style={s.row}>
-            <div style={s.field}>
-              <label style={s.label}>DATA ITP</label>
-              <input type="date" value={form.dataITP} onChange={e => set('dataITP', e.target.value)} style={s.dateInput} />
+          {[
+            { doc: 'ITP', obtKey: 'obtinereITP', expKey: 'dataITP', costKey: 'costITP', costPlaceholder: 'ex: 200' },
+            { doc: 'RCA', obtKey: 'obtinereRCA', expKey: 'dataRCA', costKey: 'costRCA', costPlaceholder: 'ex: 800' },
+            { doc: 'ROVINIETĂ', obtKey: 'obtinereRovinieta', expKey: 'dataRovinieta', costKey: 'costRovinieta', costPlaceholder: 'ex: 28' },
+          ].map(d => (
+            <div key={d.doc} style={s.docGrup}>
+              <p style={s.docGrupLabel}>{d.doc}</p>
+              <div style={s.row}>
+                <div style={s.field}>
+                  <label style={s.label}>DATA {d.doc}</label>
+                  <input type="date" value={form[d.obtKey]} style={s.dateInput}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const upd = { [d.obtKey]: val };
+                      if (val) {
+                        const exp = new Date(val);
+                        exp.setFullYear(exp.getFullYear() + 1);
+                        upd[d.expKey] = exp.toISOString().split('T')[0];
+                      }
+                      set('__batch', upd);
+                    }}
+                  />
+                </div>
+                <div style={s.field}>
+                  <label style={s.label}>EXPIRĂ</label>
+                  <input type="date" value={form[d.expKey]} style={s.dateInput} onChange={e => set(d.expKey, e.target.value)} />
+                </div>
+              </div>
+              <div style={s.field}>
+                <label style={s.label}>COST {d.doc} (lei)</label>
+                <input type="number" value={form[d.costKey]} style={s.input} onChange={e => set(d.costKey, e.target.value)} placeholder={d.costPlaceholder} />
+              </div>
             </div>
-            <div style={s.field}>
-              <label style={s.label}>COST ITP (lei)</label>
-              <input type="number" value={form.costITP} onChange={e => set('costITP', e.target.value)} placeholder="ex: 200" style={s.input} />
-            </div>
-          </div>
-
-          <div style={s.row}>
-            <div style={s.field}>
-              <label style={s.label}>DATA RCA</label>
-              <input type="date" value={form.dataRCA} onChange={e => set('dataRCA', e.target.value)} style={s.dateInput} />
-            </div>
-            <div style={s.field}>
-              <label style={s.label}>COST RCA (lei)</label>
-              <input type="number" value={form.costRCA} onChange={e => set('costRCA', e.target.value)} placeholder="ex: 800" style={s.input} />
-            </div>
-          </div>
-
-          <div style={s.row}>
-            <div style={s.field}>
-              <label style={s.label}>DATA ROVINIETĂ</label>
-              <input type="date" value={form.dataRovinieta} onChange={e => set('dataRovinieta', e.target.value)} style={s.dateInput} />
-            </div>
-            <div style={s.field}>
-              <label style={s.label}>COST ROVINIETĂ (lei)</label>
-              <input type="number" value={form.costRovinieta} onChange={e => set('costRovinieta', e.target.value)} placeholder="ex: 28" style={s.input} />
-            </div>
-          </div>
+          ))}
 
           <div style={s.divider}>ULTIMUL SCHIMB ULEI</div>
 
@@ -392,6 +398,21 @@ const s = {
     margin: '4px 0',
     letterSpacing: '2px',
     fontWeight: '800',
+    fontFamily: '"Inter", sans-serif',
+  },
+  docGrup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    paddingBottom: '12px',
+    borderBottom: '1px solid rgba(255,255,255,0.05)',
+  },
+  docGrupLabel: {
+    margin: 0,
+    fontSize: '9px',
+    fontWeight: '800',
+    color: '#00e5ff',
+    letterSpacing: '1.5px',
     fontFamily: '"Inter", sans-serif',
   },
   saveBtn: {

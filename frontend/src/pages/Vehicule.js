@@ -29,7 +29,9 @@ const Vehicule = () => {
   const initialFormState = {
     marca: '', model: '', an: '', motor: '', vin: '',
     numarInmatriculare: '', kilometrajCurent: '',
-    dataITP: '', dataRCA: '', dataRovinieta: '',
+    obtinereITP: '', dataITP: '',
+    obtinereRCA: '', dataRCA: '',
+    obtinereRovinieta: '', dataRovinieta: '',
     costITP: '', costRCA: '', costRovinieta: '',
     ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: '', costUlei: ''
   };
@@ -174,9 +176,9 @@ const Vehicule = () => {
         await api.post(`/reminders/genereaza/${vehicleId}`);
         const azi = new Date().toISOString().split('T')[0];
         const loguriInitiale = [
-          formVehicul.costITP && { tip: 'ITP', categorie: 'document', data: formVehicul.dataITP || azi, cost: Number(formVehicul.costITP) },
-          formVehicul.costRCA && { tip: 'RCA', categorie: 'document', data: formVehicul.dataRCA || azi, cost: Number(formVehicul.costRCA) },
-          formVehicul.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: formVehicul.dataRovinieta || azi, cost: Number(formVehicul.costRovinieta) },
+          formVehicul.costITP && { tip: 'ITP', categorie: 'document', data: formVehicul.obtinereITP || azi, cost: Number(formVehicul.costITP) },
+          formVehicul.costRCA && { tip: 'RCA', categorie: 'document', data: formVehicul.obtinereRCA || azi, cost: Number(formVehicul.costRCA) },
+          formVehicul.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: formVehicul.obtinereRovinieta || azi, cost: Number(formVehicul.costRovinieta) },
           formVehicul.costUlei && formVehicul.ultimulSchimbUleiData && { tip: 'Schimb ulei', categorie: 'service', data: formVehicul.ultimulSchimbUleiData, kilometraj: Number(formVehicul.ultimulSchimbUleiKilometraj) || 0, cost: Number(formVehicul.costUlei) },
         ].filter(Boolean);
         if (loguriInitiale.length) {
@@ -443,47 +445,61 @@ const Vehicule = () => {
                 <input style={s.input} placeholder="17 caractere" value={formVehicul.vin} onChange={e => setFormVehicul({ ...formVehicul, vin: e.target.value })} />
               </div>
 
-              <div style={s.divider}>DOCUMENTE & EXPIRĂRI</div>
+              <div style={s.divider}>DOCUMENTE</div>
 
-              <div style={s.formRow}>
-                <div style={s.field}>
-                  <label style={s.label}>DATA ITP</label>
-                  <input type="date" style={s.dateInput} value={formVehicul.dataITP} onChange={e => setFormVehicul({ ...formVehicul, dataITP: e.target.value })} />
-                </div>
-                <div style={s.field}>
-                  <label style={s.label}>{isEditing ? 'DATA RCA' : 'COST ITP (lei)'}</label>
-                  {isEditing
-                    ? <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => setFormVehicul({ ...formVehicul, dataRCA: e.target.value })} />
-                    : <input type="number" style={s.input} value={formVehicul.costITP} onChange={e => setFormVehicul({ ...formVehicul, costITP: e.target.value })} placeholder="ex: 200" />
-                  }
-                </div>
-              </div>
-
-              {!isEditing && (
-                <div style={s.formRow}>
-                  <div style={s.field}>
-                    <label style={s.label}>DATA RCA</label>
-                    <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => setFormVehicul({ ...formVehicul, dataRCA: e.target.value })} />
+              {isEditing ? (
+                <>
+                  <div style={s.formRow}>
+                    <div style={s.field}>
+                      <label style={s.label}>DATA ITP</label>
+                      <input type="date" style={s.dateInput} value={formVehicul.dataITP} onChange={e => setFormVehicul({ ...formVehicul, dataITP: e.target.value })} />
+                    </div>
+                    <div style={s.field}>
+                      <label style={s.label}>DATA RCA</label>
+                      <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => setFormVehicul({ ...formVehicul, dataRCA: e.target.value })} />
+                    </div>
                   </div>
                   <div style={s.field}>
-                    <label style={s.label}>COST RCA (lei)</label>
-                    <input type="number" style={s.input} value={formVehicul.costRCA} onChange={e => setFormVehicul({ ...formVehicul, costRCA: e.target.value })} placeholder="ex: 800" />
+                    <label style={s.label}>DATA ROVINIETĂ</label>
+                    <input type="date" style={s.dateInput} value={formVehicul.dataRovinieta} onChange={e => setFormVehicul({ ...formVehicul, dataRovinieta: e.target.value })} />
                   </div>
-                </div>
+                </>
+              ) : (
+                [
+                  { doc: 'ITP', obtKey: 'obtinereITP', expKey: 'dataITP', costKey: 'costITP', placeholder: 'ex: 200' },
+                  { doc: 'RCA', obtKey: 'obtinereRCA', expKey: 'dataRCA', costKey: 'costRCA', placeholder: 'ex: 800' },
+                  { doc: 'ROVINIETĂ', obtKey: 'obtinereRovinieta', expKey: 'dataRovinieta', costKey: 'costRovinieta', placeholder: 'ex: 28' },
+                ].map(d => (
+                  <div key={d.doc} style={s.docGrup}>
+                    <p style={s.docGrupLabel}>{d.doc}</p>
+                    <div style={s.formRow}>
+                      <div style={s.field}>
+                        <label style={s.label}>DATA {d.doc}</label>
+                        <input type="date" style={s.dateInput} value={formVehicul[d.obtKey]}
+                          onChange={e => {
+                            const val = e.target.value;
+                            const upd = { ...formVehicul, [d.obtKey]: val };
+                            if (val) {
+                              const exp = new Date(val);
+                              exp.setFullYear(exp.getFullYear() + 1);
+                              upd[d.expKey] = exp.toISOString().split('T')[0];
+                            }
+                            setFormVehicul(upd);
+                          }}
+                        />
+                      </div>
+                      <div style={s.field}>
+                        <label style={s.label}>EXPIRĂ</label>
+                        <input type="date" style={s.dateInput} value={formVehicul[d.expKey]} onChange={e => setFormVehicul({ ...formVehicul, [d.expKey]: e.target.value })} />
+                      </div>
+                    </div>
+                    <div style={s.field}>
+                      <label style={s.label}>COST {d.doc} (lei)</label>
+                      <input type="number" style={s.input} value={formVehicul[d.costKey]} onChange={e => setFormVehicul({ ...formVehicul, [d.costKey]: e.target.value })} placeholder={d.placeholder} />
+                    </div>
+                  </div>
+                ))
               )}
-
-              <div style={s.formRow}>
-                <div style={s.field}>
-                  <label style={s.label}>DATA ROVINIETĂ</label>
-                  <input type="date" style={s.dateInput} value={formVehicul.dataRovinieta} onChange={e => setFormVehicul({ ...formVehicul, dataRovinieta: e.target.value })} />
-                </div>
-                {!isEditing && (
-                  <div style={s.field}>
-                    <label style={s.label}>COST ROVINIETĂ (lei)</label>
-                    <input type="number" style={s.input} value={formVehicul.costRovinieta} onChange={e => setFormVehicul({ ...formVehicul, costRovinieta: e.target.value })} placeholder="ex: 28" />
-                  </div>
-                )}
-              </div>
 
               <div style={s.divider}>ULTIMUL SCHIMB ULEI</div>
 
@@ -908,6 +924,20 @@ const s = {
     margin: '8px 0 2px 0',
     letterSpacing: '2px',
     fontWeight: '800',
+  },
+  docGrup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    paddingBottom: '12px',
+    borderBottom: '1px solid rgba(255,255,255,0.05)',
+  },
+  docGrupLabel: {
+    margin: 0,
+    fontSize: '0.6rem',
+    fontWeight: '800',
+    color: '#00e5ff',
+    letterSpacing: '1.5px',
   },
   saveBtn: {
     backgroundColor: '#00e5ff',

@@ -21,7 +21,7 @@ const DetaliiVehicul = () => {
 
   const [nouKilometraj, setNouKilometraj] = useState('');
   const [formUlei, setFormUlei] = useState({ data: '', kilometraj: '', cost: '' });
-  const [formDoc, setFormDoc] = useState({ dataITP: '', dataRCA: '', dataRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
+  const [formDoc, setFormDoc] = useState({ dataITP: '', dataRCA: '', dataRovinieta: '', obtinereITP: '', obtinereRCA: '', obtinereRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
   const [formDocCustom, setFormDocCustom] = useState({ nume: '', dataExpirare: '', cost: '' });
   const [editDocCustomId, setEditDocCustomId] = useState(null);
 
@@ -145,15 +145,15 @@ const DetaliiVehicul = () => {
       await api.post(`/reminders/genereaza/${id}`);
       const azi = new Date().toISOString().split('T')[0];
       const loguriDoc = [
-        formDoc.costITP && { tip: 'ITP', data: formDoc.dataITP || azi, cost: Number(formDoc.costITP) },
-        formDoc.costRCA && { tip: 'RCA', data: formDoc.dataRCA || azi, cost: Number(formDoc.costRCA) },
-        formDoc.costRovinieta && { tip: 'Rovinietă', data: formDoc.dataRovinieta || azi, cost: Number(formDoc.costRovinieta) },
+        formDoc.costITP && { tip: 'ITP', data: formDoc.obtinereITP || azi, cost: Number(formDoc.costITP) },
+        formDoc.costRCA && { tip: 'RCA', data: formDoc.obtinereRCA || azi, cost: Number(formDoc.costRCA) },
+        formDoc.costRovinieta && { tip: 'Rovinietă', data: formDoc.obtinereRovinieta || azi, cost: Number(formDoc.costRovinieta) },
       ].filter(Boolean);
       await Promise.all(loguriDoc.map(l => api.post(`/maintenance/vehicul/${id}`, { ...l, categorie: 'document' })));
       if (loguriDoc.length) await fetchIstoric();
       toast.success('Documente actualizate!');
       setShowDocModal(false);
-      setFormDoc({ dataITP: '', dataRCA: '', dataRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
+      setFormDoc({ dataITP: '', dataRCA: '', dataRovinieta: '', obtinereITP: '', obtinereRCA: '', obtinereRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
       await fetchVehicul();
     } catch { toast.error('Eroare la salvare'); }
   };
@@ -178,7 +178,7 @@ const DetaliiVehicul = () => {
         const azi = new Date().toISOString().split('T')[0];
         await api.post(`/maintenance/vehicul/${id}`, {
           tip: formDocCustom.nume.trim(), categorie: 'document',
-          data: formDocCustom.dataExpirare || azi, cost: Number(formDocCustom.cost)
+          data: azi, cost: Number(formDocCustom.cost)
         });
         await fetchIstoric();
       }
@@ -324,7 +324,7 @@ const DetaliiVehicul = () => {
           <div style={s.card}>
             <div style={s.cardHeader}>
               <span style={s.cardHeaderTitlu}>ITP · RCA · ROVINIETĂ</span>
-              <button onClick={() => { setFormDoc({ dataITP: toDateInput(vehicul.dataITP), dataRCA: toDateInput(vehicul.dataRCA), dataRovinieta: toDateInput(vehicul.dataRovinieta), costITP: '', costRCA: '', costRovinieta: '' }); setShowDocModal(true); }} style={s.editBtn}>
+              <button onClick={() => { setFormDoc({ dataITP: toDateInput(vehicul.dataITP), dataRCA: toDateInput(vehicul.dataRCA), dataRovinieta: toDateInput(vehicul.dataRovinieta), obtinereITP: '', obtinereRCA: '', obtinereRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' }); setShowDocModal(true); }} style={s.editBtn}>
                 EDITEAZĂ
               </button>
             </div>
@@ -549,45 +549,49 @@ const DetaliiVehicul = () => {
               <button onClick={() => setShowDocModal(false)} style={s.closeBtn}>✕</button>
             </div>
             <form onSubmit={handleSalveazaDoc} style={s.modalForm}>
-              <div style={s.docGrup}>
-                <p style={s.docGrupLabel}>ITP</p>
-                <div style={s.docGrupRow}>
-                  <div style={{ flex: 2 }}>
-                    <label style={s.mLabel}>Dată expirare</label>
-                    <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataITP} onChange={e => setFormDoc({ ...formDoc, dataITP: e.target.value })} />
+              {[
+                { key: 'ITP', labelObt: 'Data ITP', labelExp: 'Expiră', obtKey: 'obtinereITP', expKey: 'dataITP', costKey: 'costITP' },
+                { key: 'RCA', labelObt: 'Data RCA', labelExp: 'Expiră', obtKey: 'obtinereRCA', expKey: 'dataRCA', costKey: 'costRCA' },
+                { key: 'ROVINIETĂ', labelObt: 'Data Rovinietă', labelExp: 'Expiră', obtKey: 'obtinereRovinieta', expKey: 'dataRovinieta', costKey: 'costRovinieta' },
+              ].map(doc => (
+                <div key={doc.key} style={s.docGrup}>
+                  <p style={s.docGrupLabel}>{doc.key}</p>
+                  <div style={s.docGrupRow}>
+                    <div style={{ flex: 1 }}>
+                      <label style={s.mLabel}>{doc.labelObt}</label>
+                      <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }}
+                        value={formDoc[doc.obtKey]}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setFormDoc(f => {
+                            const upd = { ...f, [doc.obtKey]: val };
+                            if (val) {
+                              const exp = new Date(val);
+                              exp.setFullYear(exp.getFullYear() + 1);
+                              upd[doc.expKey] = exp.toISOString().split('T')[0];
+                            }
+                            return upd;
+                          });
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={s.mLabel}>{doc.labelExp}</label>
+                      <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }}
+                        value={formDoc[doc.expKey]}
+                        onChange={e => setFormDoc(f => ({ ...f, [doc.expKey]: e.target.value }))}
+                      />
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div>
                     <label style={s.mLabel}>Cost (lei)</label>
-                    <input type="number" style={s.mInput} value={formDoc.costITP} onChange={e => setFormDoc({ ...formDoc, costITP: e.target.value })} placeholder="0" />
+                    <input type="number" style={s.mInput}
+                      value={formDoc[doc.costKey]}
+                      onChange={e => setFormDoc(f => ({ ...f, [doc.costKey]: e.target.value }))}
+                      placeholder="0" />
                   </div>
                 </div>
-              </div>
-              <div style={s.docGrup}>
-                <p style={s.docGrupLabel}>RCA</p>
-                <div style={s.docGrupRow}>
-                  <div style={{ flex: 2 }}>
-                    <label style={s.mLabel}>Dată expirare</label>
-                    <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataRCA} onChange={e => setFormDoc({ ...formDoc, dataRCA: e.target.value })} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={s.mLabel}>Cost (lei)</label>
-                    <input type="number" style={s.mInput} value={formDoc.costRCA} onChange={e => setFormDoc({ ...formDoc, costRCA: e.target.value })} placeholder="0" />
-                  </div>
-                </div>
-              </div>
-              <div style={s.docGrup}>
-                <p style={s.docGrupLabel}>ROVINIETĂ</p>
-                <div style={s.docGrupRow}>
-                  <div style={{ flex: 2 }}>
-                    <label style={s.mLabel}>Dată expirare</label>
-                    <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDoc.dataRovinieta} onChange={e => setFormDoc({ ...formDoc, dataRovinieta: e.target.value })} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={s.mLabel}>Cost (lei)</label>
-                    <input type="number" style={s.mInput} value={formDoc.costRovinieta} onChange={e => setFormDoc({ ...formDoc, costRovinieta: e.target.value })} placeholder="0" />
-                  </div>
-                </div>
-              </div>
+              ))}
               <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
             </form>
           </div>
