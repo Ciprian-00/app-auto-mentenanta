@@ -16,6 +16,28 @@ const TIP_TO_FIELD = {
   Rovinieta: 'dataRovinieta',
 };
 
+// Tipuri de reminder care sunt service (nu documente cu dată expirare)
+const SERVICE_TIPS = new Set(['Ulei', 'Distributie', 'LichidFrana']);
+
+// Etichete lizibile pentru tipuri de reminder
+const TIP_LABEL = {
+  ITP: 'ITP',
+  RCA: 'RCA',
+  Rovinieta: 'Rovinietă',
+  Ulei: 'Schimb ulei',
+  Distributie: 'Distribuție',
+  LichidFrana: 'Lichid frână',
+};
+
+const TIP_ICON = {
+  ITP: '📋',
+  RCA: '🛡️',
+  Rovinieta: '🛣️',
+  Ulei: '🛢️',
+  Distributie: '⚙️',
+  LichidFrana: '🔧',
+};
+
 const PRIORITATE = { expirat: 0, urgent: 1, ok: 2 };
 
 const sorteazaDupaPrioritate = (lista) =>
@@ -118,7 +140,9 @@ const Notificari = ({ onRemindereUpdate }) => {
 
   const renderCard = (r) => {
     const c = getColors(r.status);
-    const areEditare = true;
+    const label = TIP_LABEL[r.tip] || r.tip;
+    const icon = TIP_ICON[r.tip] || '📄';
+    const areEditare = !SERVICE_TIPS.has(r.tip);
     return (
       <div key={r._id} style={{ ...s.card, borderLeft: `3px solid ${c.border}` }}>
         <div style={s.cardTop}>
@@ -126,7 +150,7 @@ const Notificari = ({ onRemindereUpdate }) => {
             <span style={{ ...s.dot, backgroundColor: c.dot, boxShadow: c.glow ? `0 0 7px ${c.dot}` : 'none' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={s.cardTipRow}>
-                <p style={s.cardTip}>{r.tip}</p>
+                <p style={s.cardTip}>{icon} {label}</p>
                 <span style={s.cardTipBadge}>{r.tip}</span>
               </div>
               {r.vehicul && (
@@ -221,7 +245,7 @@ const Notificari = ({ onRemindereUpdate }) => {
             <div style={s.modalHeader}>
               <div>
                 <p style={s.modalSub}>ACTUALIZEAZĂ DOCUMENT</p>
-                <h3 style={s.modalTitlu}>{editModal.tip} · {editModal.vehicul?.marca} {editModal.vehicul?.model}</h3>
+                <h3 style={s.modalTitlu}>{TIP_LABEL[editModal.tip] || editModal.tip} · {editModal.vehicul?.marca} {editModal.vehicul?.model}</h3>
               </div>
               <button onClick={() => setEditModal(null)} style={s.closeBtn}>✕</button>
             </div>
