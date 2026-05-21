@@ -30,7 +30,8 @@ const Vehicule = () => {
     marca: '', model: '', an: '', motor: '', vin: '',
     numarInmatriculare: '', kilometrajCurent: '',
     dataITP: '', dataRCA: '', dataRovinieta: '',
-    ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: ''
+    costITP: '', costRCA: '', costRovinieta: '',
+    ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: '', costUlei: ''
   };
 
   const [formVehicul, setFormVehicul] = useState(initialFormState);
@@ -169,7 +170,18 @@ const Vehicule = () => {
         toast.success('Informații actualizate!');
       } else {
         const res = await api.post('/vehicles', payload);
-        await api.post(`/reminders/genereaza/${res.data._id}`);
+        const vehicleId = res.data._id;
+        await api.post(`/reminders/genereaza/${vehicleId}`);
+        const azi = new Date().toISOString().split('T')[0];
+        const loguriInitiale = [
+          formVehicul.costITP && { tip: 'ITP', categorie: 'document', data: formVehicul.dataITP || azi, cost: Number(formVehicul.costITP) },
+          formVehicul.costRCA && { tip: 'RCA', categorie: 'document', data: formVehicul.dataRCA || azi, cost: Number(formVehicul.costRCA) },
+          formVehicul.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: formVehicul.dataRovinieta || azi, cost: Number(formVehicul.costRovinieta) },
+          formVehicul.costUlei && formVehicul.ultimulSchimbUleiData && { tip: 'Schimb ulei', categorie: 'service', data: formVehicul.ultimulSchimbUleiData, kilometraj: Number(formVehicul.ultimulSchimbUleiKilometraj) || 0, cost: Number(formVehicul.costUlei) },
+        ].filter(Boolean);
+        if (loguriInitiale.length) {
+          await Promise.all(loguriInitiale.map(l => api.post(`/maintenance/vehicul/${vehicleId}`, l)));
+        }
         toast.success('Mașina a fost adăugată!');
       }
       setShowModal(false);
@@ -439,14 +451,38 @@ const Vehicule = () => {
                   <input type="date" style={s.dateInput} value={formVehicul.dataITP} onChange={e => setFormVehicul({ ...formVehicul, dataITP: e.target.value })} />
                 </div>
                 <div style={s.field}>
-                  <label style={s.label}>DATA RCA</label>
-                  <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => setFormVehicul({ ...formVehicul, dataRCA: e.target.value })} />
+                  <label style={s.label}>{isEditing ? 'DATA RCA' : 'COST ITP (lei)'}</label>
+                  {isEditing
+                    ? <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => setFormVehicul({ ...formVehicul, dataRCA: e.target.value })} />
+                    : <input type="number" style={s.input} value={formVehicul.costITP} onChange={e => setFormVehicul({ ...formVehicul, costITP: e.target.value })} placeholder="ex: 200" />
+                  }
                 </div>
               </div>
 
-              <div style={s.field}>
-                <label style={s.label}>DATA ROVINIETĂ</label>
-                <input type="date" style={s.dateInput} value={formVehicul.dataRovinieta} onChange={e => setFormVehicul({ ...formVehicul, dataRovinieta: e.target.value })} />
+              {!isEditing && (
+                <div style={s.formRow}>
+                  <div style={s.field}>
+                    <label style={s.label}>DATA RCA</label>
+                    <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => setFormVehicul({ ...formVehicul, dataRCA: e.target.value })} />
+                  </div>
+                  <div style={s.field}>
+                    <label style={s.label}>COST RCA (lei)</label>
+                    <input type="number" style={s.input} value={formVehicul.costRCA} onChange={e => setFormVehicul({ ...formVehicul, costRCA: e.target.value })} placeholder="ex: 800" />
+                  </div>
+                </div>
+              )}
+
+              <div style={s.formRow}>
+                <div style={s.field}>
+                  <label style={s.label}>DATA ROVINIETĂ</label>
+                  <input type="date" style={s.dateInput} value={formVehicul.dataRovinieta} onChange={e => setFormVehicul({ ...formVehicul, dataRovinieta: e.target.value })} />
+                </div>
+                {!isEditing && (
+                  <div style={s.field}>
+                    <label style={s.label}>COST ROVINIETĂ (lei)</label>
+                    <input type="number" style={s.input} value={formVehicul.costRovinieta} onChange={e => setFormVehicul({ ...formVehicul, costRovinieta: e.target.value })} placeholder="ex: 28" />
+                  </div>
+                )}
               </div>
 
               <div style={s.divider}>ULTIMUL SCHIMB ULEI</div>
@@ -461,6 +497,13 @@ const Vehicule = () => {
                   <input type="number" style={s.input} value={formVehicul.ultimulSchimbUleiKilometraj} onChange={e => setFormVehicul({ ...formVehicul, ultimulSchimbUleiKilometraj: e.target.value })} />
                 </div>
               </div>
+
+              {!isEditing && (
+                <div style={s.field}>
+                  <label style={s.label}>COST ULEI (lei, opțional)</label>
+                  <input type="number" style={s.input} value={formVehicul.costUlei} onChange={e => setFormVehicul({ ...formVehicul, costUlei: e.target.value })} placeholder="ex: 280" />
+                </div>
+              )}
 
               <button type="submit" style={s.saveBtn}>
                 {isEditing ? 'ACTUALIZEAZĂ DATELE' : 'SALVEAZĂ VEHICUL'}
