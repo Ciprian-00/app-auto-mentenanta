@@ -27,6 +27,7 @@ const vehicleSpecSchema = new mongoose.Schema({
     filtryCombustibil: { type: String }
   },
   intervalDistributie: { type: Number },
+  intervalDistributieLuni: { type: Number, default: 0 },
   intervalLichidFrana: { type: Number }
 }, { timestamps: true });
 

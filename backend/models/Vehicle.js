@@ -24,6 +24,13 @@ const vehicleSchema = new mongoose.Schema({
     data: { type: Date },
     kilometraj: { type: Number }
   },
+  ultimaDistributie: {
+    data: { type: Date },
+    kilometraj: { type: Number }
+  },
+  ultimulLichidFrana: {
+    data: { type: Date }
+  },
   documenteCustom: [{
     nume: { type: String, required: true },
     dataExpirare: { type: Date }

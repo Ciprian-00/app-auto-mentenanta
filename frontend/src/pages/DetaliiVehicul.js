@@ -18,9 +18,13 @@ const DetaliiVehicul = () => {
   const [showDocModal, setShowDocModal] = useState(false);
   const [showDocCustomModal, setShowDocCustomModal] = useState(false);
   const [showIstoricModal, setShowIstoricModal] = useState(false);
+  const [showDistributieModal, setShowDistributieModal] = useState(false);
+  const [showLichidFranaModal, setShowLichidFranaModal] = useState(false);
 
   const [nouKilometraj, setNouKilometraj] = useState('');
   const [formUlei, setFormUlei] = useState({ data: '', kilometraj: '', cost: '' });
+  const [formDistributie, setFormDistributie] = useState({ data: '', kilometraj: '', cost: '' });
+  const [formLichidFrana, setFormLichidFrana] = useState({ data: '', cost: '' });
   const [formDoc, setFormDoc] = useState({ dataITP: '', dataRCA: '', dataRovinieta: '', obtinereITP: '', obtinereRCA: '', obtinereRovinieta: '', costITP: '', costRCA: '', costRovinieta: '' });
   const [formDocCustom, setFormDocCustom] = useState({ nume: '', dataExpirare: '', cost: '' });
   const [editDocCustomId, setEditDocCustomId] = useState(null);
@@ -129,6 +133,40 @@ const DetaliiVehicul = () => {
       await api.post(`/reminders/genereaza/${id}`);
       toast.success('Schimb ulei salvat!');
       setShowUleiModal(false); setFormUlei({ data: '', kilometraj: '', cost: '' });
+      await fetchVehicul(); await fetchRecomandari(); await fetchIstoric();
+    } catch { toast.error('Eroare la salvare'); }
+  };
+
+  const handleSalveazaDistributie = async (e) => {
+    e.preventDefault();
+    if (!formDistributie.data || !formDistributie.kilometraj) { toast.error('Completează data și kilometrajul'); return; }
+    try {
+      await api.put(`/vehicles/${id}`, { ...vehicul, ultimaDistributie: { data: formDistributie.data, kilometraj: Number(formDistributie.kilometraj) } });
+      await api.post(`/maintenance/vehicul/${id}`, {
+        tip: 'Distribuție', data: formDistributie.data,
+        kilometraj: Number(formDistributie.kilometraj),
+        cost: formDistributie.cost ? Number(formDistributie.cost) : undefined,
+      });
+      await api.post(`/reminders/genereaza/${id}`);
+      toast.success('Distribuție salvată!');
+      setShowDistributieModal(false); setFormDistributie({ data: '', kilometraj: '', cost: '' });
+      await fetchVehicul(); await fetchRecomandari(); await fetchIstoric();
+    } catch { toast.error('Eroare la salvare'); }
+  };
+
+  const handleSalveazaLichidFrana = async (e) => {
+    e.preventDefault();
+    if (!formLichidFrana.data) { toast.error('Completează data'); return; }
+    try {
+      await api.put(`/vehicles/${id}`, { ...vehicul, ultimulLichidFrana: { data: formLichidFrana.data } });
+      await api.post(`/maintenance/vehicul/${id}`, {
+        tip: 'Lichid frână', data: formLichidFrana.data,
+        kilometraj: vehicul.kilometrajCurent || 0,
+        cost: formLichidFrana.cost ? Number(formLichidFrana.cost) : undefined,
+      });
+      await api.post(`/reminders/genereaza/${id}`);
+      toast.success('Lichid frână salvat!');
+      setShowLichidFranaModal(false); setFormLichidFrana({ data: '', cost: '' });
       await fetchVehicul(); await fetchRecomandari(); await fetchIstoric();
     } catch { toast.error('Eroare la salvare'); }
   };
@@ -407,6 +445,79 @@ const DetaliiVehicul = () => {
               );
             })()}
 
+            {/* Distribuție — doar dacă spec are interval */}
+            {specificatii?.intervalDistributie > 0 && (() => {
+              const u = vehicul.ultimaDistributie;
+              let distColor = '#475569', distText = null;
+              if (u?.data) {
+                const intervalLuni = specificatii.intervalDistributieLuni || 60;
+                const dataUrm = new Date(u.data);
+                dataUrm.setMonth(dataUrm.getMonth() + intervalLuni);
+                const depasitKm = (vehicul.kilometrajCurent || 0) > 0 && (u.kilometraj || 0) > 0 &&
+                  ((vehicul.kilometrajCurent - u.kilometraj) >= specificatii.intervalDistributie);
+                const zile = depasitKm ? -1 : Math.ceil((dataUrm - new Date()) / (1000 * 60 * 60 * 24));
+                distColor = zile < 0 ? '#ff4d4d' : zile <= 60 ? '#fbbf24' : '#22d3a5';
+                distText = zile < 0 ? 'Depășit' : zile <= 60 ? `${zile}z` : 'La zi';
+              }
+              return (
+                <>
+                  <div style={s.rowDiv} />
+                  <div style={s.row}>
+                    <div>
+                      <span style={s.rowLabel}>⚙️ Distribuție</span>
+                      {u?.data
+                        ? <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#475569' }}>
+                            {formateazaData(u.data)} · {u.kilometraj?.toLocaleString('ro-RO')} km
+                          </p>
+                        : <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#334155' }}>Neînregistrat</p>
+                      }
+                    </div>
+                    <div style={s.rowRight}>
+                      {distText && <span style={{ ...s.pill, backgroundColor: `${distColor}22`, color: distColor }}>{distText}</span>}
+                      <button onClick={() => { setFormDistributie({ data: toDateInput(u?.data), kilometraj: u?.kilometraj || '', cost: '' }); setShowDistributieModal(true); }} style={s.editBtn}>
+                        {u?.data ? '✎' : 'ADAUGĂ'}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+
+            {/* Lichid frână — doar dacă spec are interval */}
+            {specificatii?.intervalLichidFrana > 0 && (() => {
+              const u = vehicul.ultimulLichidFrana;
+              let lichidColor = '#475569', lichidText = null;
+              if (u?.data) {
+                const dataUrm = new Date(u.data);
+                dataUrm.setMonth(dataUrm.getMonth() + specificatii.intervalLichidFrana);
+                const zile = Math.ceil((dataUrm - new Date()) / (1000 * 60 * 60 * 24));
+                lichidColor = zile < 0 ? '#ff4d4d' : zile <= 60 ? '#fbbf24' : '#22d3a5';
+                lichidText = zile < 0 ? 'Depășit' : zile <= 60 ? `${zile}z` : 'La zi';
+              }
+              return (
+                <>
+                  <div style={s.rowDiv} />
+                  <div style={s.row}>
+                    <div>
+                      <span style={s.rowLabel}>🔧 Lichid frână</span>
+                      {u?.data
+                        ? <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#475569' }}>
+                            {formateazaData(u.data)} · interval {specificatii.intervalLichidFrana} luni
+                          </p>
+                        : <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#334155' }}>Neînregistrat</p>
+                      }
+                    </div>
+                    <div style={s.rowRight}>
+                      {lichidText && <span style={{ ...s.pill, backgroundColor: `${lichidColor}22`, color: lichidColor }}>{lichidText}</span>}
+                      <button onClick={() => { setFormLichidFrana({ data: toDateInput(u?.data), cost: '' }); setShowLichidFranaModal(true); }} style={s.editBtn}>
+                        {u?.data ? '✎' : 'ADAUGĂ'}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+
             {/* Separator + titlu istoric */}
             <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.05)', margin: '0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px' }}>
@@ -459,7 +570,12 @@ const DetaliiVehicul = () => {
                 specificatii.ulei?.intervalKm && { label: 'Interval ulei', val: `${specificatii.ulei.intervalKm.toLocaleString()} km / ${specificatii.ulei.intervalLuni} luni` },
                 specificatii.anvelope?.fata && { label: 'Anvelope față', val: specificatii.anvelope.fata },
                 specificatii.anvelope?.spate && { label: 'Anvelope spate', val: specificatii.anvelope.spate },
-                specificatii.intervalDistributie > 0 && { label: 'Distribuție', val: `${specificatii.intervalDistributie.toLocaleString()} km` },
+                specificatii.intervalDistributie > 0 && {
+                  label: 'Distribuție',
+                  val: specificatii.intervalDistributieLuni > 0
+                    ? `${specificatii.intervalDistributie.toLocaleString()} km sau ${specificatii.intervalDistributieLuni} luni`
+                    : `${specificatii.intervalDistributie.toLocaleString()} km`
+                },
                 specificatii.intervalLichidFrana && { label: 'Lichid frână', val: `La ${specificatii.intervalLichidFrana} luni` },
                 specificatii.filtreSchimb?.filtruUlei && { label: 'Filtru ulei', val: specificatii.filtreSchimb.filtruUlei, code: true },
                 specificatii.filtreSchimb?.filtruAer && { label: 'Filtru aer', val: specificatii.filtreSchimb.filtruAer, code: true },
@@ -654,6 +770,59 @@ const DetaliiVehicul = () => {
               <input type="number" style={s.mInput} value={formIstoric.cost} onChange={e => setFormIstoric(f => ({ ...f, cost: e.target.value }))} placeholder="ex: 350" />
               <label style={s.mLabel}>Descriere (opțional)</label>
               <textarea style={{ ...s.mInput, resize: 'vertical', minHeight: '72px' }} value={formIstoric.descriere} onChange={e => setFormIstoric(f => ({ ...f, descriere: e.target.value }))} placeholder="Detalii despre intervenție..." />
+              <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DISTRIBUȚIE */}
+      {showDistributieModal && (
+        <div style={s.overlay} onClick={() => setShowDistributieModal(false)}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <h3 style={s.modalTitlu}>DISTRIBUȚIE</h3>
+              <button onClick={() => setShowDistributieModal(false)} style={s.closeBtn}>✕</button>
+            </div>
+            <form onSubmit={handleSalveazaDistributie} style={s.modalForm}>
+              <label style={s.mLabel}>Data schimbului *</label>
+              <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formDistributie.data} onChange={e => setFormDistributie(f => ({ ...f, data: e.target.value }))} required />
+              <label style={s.mLabel}>Kilometraj la schimb *</label>
+              <input type="number" style={s.mInput} value={formDistributie.kilometraj} onChange={e => setFormDistributie(f => ({ ...f, kilometraj: e.target.value }))} placeholder="ex: 100000" required />
+              <label style={s.mLabel}>Cost (lei, opțional)</label>
+              <input type="number" style={s.mInput} value={formDistributie.cost} onChange={e => setFormDistributie(f => ({ ...f, cost: e.target.value }))} placeholder="ex: 1200" />
+              {specificatii?.intervalDistributie > 0 && (
+                <div style={s.infoBox}>
+                  <p style={s.infoText}>
+                    Interval recomandat: <strong>{specificatii.intervalDistributie.toLocaleString()} km</strong>
+                    {specificatii.intervalDistributieLuni > 0 && <> sau <strong>{specificatii.intervalDistributieLuni} luni</strong></>}
+                  </p>
+                </div>
+              )}
+              <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL LICHID FRÂNĂ */}
+      {showLichidFranaModal && (
+        <div style={s.overlay} onClick={() => setShowLichidFranaModal(false)}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <h3 style={s.modalTitlu}>LICHID FRÂNĂ</h3>
+              <button onClick={() => setShowLichidFranaModal(false)} style={s.closeBtn}>✕</button>
+            </div>
+            <form onSubmit={handleSalveazaLichidFrana} style={s.modalForm}>
+              <label style={s.mLabel}>Data schimbului *</label>
+              <input type="date" style={{ ...s.mInput, colorScheme: 'dark' }} value={formLichidFrana.data} onChange={e => setFormLichidFrana(f => ({ ...f, data: e.target.value }))} required />
+              <label style={s.mLabel}>Cost (lei, opțional)</label>
+              <input type="number" style={s.mInput} value={formLichidFrana.cost} onChange={e => setFormLichidFrana(f => ({ ...f, cost: e.target.value }))} placeholder="ex: 80" />
+              {specificatii?.intervalLichidFrana > 0 && (
+                <div style={s.infoBox}>
+                  <p style={s.infoText}>Interval recomandat: <strong>la {specificatii.intervalLichidFrana} luni</strong></p>
+                </div>
+              )}
               <button type="submit" style={s.saveBtn}>SALVEAZĂ</button>
             </form>
           </div>
