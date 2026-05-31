@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import CropImagine from '../components/CropImagine';
 
 const MARCI = ['Audi', 'BMW', 'Dacia', 'Ford', 'Mercedes-Benz', 'Renault', 'Skoda', 'Toyota', 'Volkswagen'];
 const ANI = Array.from({ length: 2027 - 1960 }, (_, i) => 2027 - i);
@@ -34,6 +35,7 @@ const Scanner = () => {
   const [etapa, setEtapa] = useState('upload');
   const [imagine, setImagine] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [cropSrc, setCropSrc] = useState(null); // imaginea originală pentru decupare
   const [ocrExtra, setOcrExtra] = useState(null);
 
   const formGol = {
@@ -106,8 +108,23 @@ const Scanner = () => {
 
   const handleFisier = (fisier) => {
     if (!fisier || !fisier.type.startsWith('image/')) return;
-    setImagine(fisier);
-    setPreview(URL.createObjectURL(fisier));
+    // Trece prin pasul de decupare înainte de OCR
+    setCropSrc(URL.createObjectURL(fisier));
+    setEtapa('crop');
+  };
+
+  const handleCropConfirmat = (fisierTaiat) => {
+    setImagine(fisierTaiat);
+    setPreview(URL.createObjectURL(fisierTaiat));
+    setCropSrc(null);
+    setEtapa('upload');
+  };
+
+  const handleCropAnulat = () => {
+    setCropSrc(null);
+    setImagine(null);
+    setPreview(null);
+    setEtapa('upload');
   };
 
   const handleDrop = (e) => {
@@ -195,6 +212,7 @@ const Scanner = () => {
     setEtapa('upload');
     setImagine(null);
     setPreview(null);
+    setCropSrc(null);
     setForm(formGol);
     setOcrExtra(null);
     ocrRef.current = null;
@@ -219,6 +237,11 @@ const Scanner = () => {
           <button onClick={reset} style={s.resetBtn}>RESCANEAZĂ</button>
         )}
       </nav>
+
+      {/* ── DECUPARE ───────────────────────────────────────── */}
+      {etapa === 'crop' && cropSrc && (
+        <CropImagine src={cropSrc} onConfirm={handleCropConfirmat} onCancel={handleCropAnulat} />
+      )}
 
       <main style={s.main}>
 
@@ -296,7 +319,7 @@ const Scanner = () => {
             {preview && <img src={preview} alt="" style={{ ...s.previewImg, opacity: 0.35, borderRadius: '10px', marginBottom: '16px' }} />}
             <div style={s.spinner} />
             <p style={s.loadingTitlu}>Procesare OCR</p>
-            <p style={s.loadingText}>Extrag datele din document... poate dura 15–30 secunde</p>
+            <p style={s.loadingText}>Analizez documentul în mai multe treceri pentru acuratețe... poate dura până la un minut</p>
           </div>
         )}
 

@@ -1,5 +1,5 @@
 const Tesseract = require('tesseract.js');
-const Jimp = require('jimp');
+const { Jimp, JimpMime } = require('jimp');
 
 // Coduri județe valide România
 const CODURI_JUDETE = new Set([
@@ -38,35 +38,88 @@ const MODELE_MARCA = {
   'Ford': ['Focus', 'Fiesta', 'Mondeo', 'Kuga', 'EcoSport', 'Puma', 'Galaxy', 'S-Max'],
 };
 
-// Preprocesează imaginea: grayscale + contrast + scale up pentru OCR mai bun
-const preprocesareImagine = async (buffer) => {
-  try {
-    const img = await Jimp.read(buffer);
+// Prag adaptiv local (Bradley) cu imagine integrală — robust la iluminare neuniformă.
+// Calculează un prag separat pentru fiecare pixel pe baza mediei zonei din jur,
+// deci se descurcă cu umbre/reflexii pe care un prag global fix le rateaza.
+const pragAdaptiv = (data, width, height) => {
+  const n = width * height;
+  const gray = new Float64Array(n);
+  for (let p = 0, i = 0; p < n; p++, i += 4) gray[p] = data[i];
 
-    // Scale up dacă imaginea e mică (sub 1500px lățime)
-    if (img.getWidth() < 1500) {
-      img.scale(2);
+  // Imagine integrală (summed-area table) pentru medie de fereastră în O(1)
+  const W = width + 1;
+  const integral = new Float64Array(W * (height + 1));
+  for (let y = 0; y < height; y++) {
+    let rowSum = 0;
+    for (let x = 0; x < width; x++) {
+      rowSum += gray[y * width + x];
+      integral[(y + 1) * W + (x + 1)] = integral[y * W + (x + 1)] + rowSum;
     }
+  }
 
-    img
-      .greyscale()       // alb-negru — elimină zgomotul de culoare
-      .normalize()       // auto-contrast: întinde histograma la min/max
-      .contrast(0.2);    // contrast ușor crescut
+  const radius = Math.max(8, Math.floor(width / 60)); // fereastra ~ proporțională
+  const T = 0.12; // pixelul e text dacă e cu 12% sub media locală
 
-    return await img.getBufferAsync(Jimp.MIME_PNG);
-  } catch (err) {
-    console.warn('Preprocesare imagine eșuată, folosesc originalul:', err.message);
-    return buffer;
+  for (let y = 0; y < height; y++) {
+    const y1 = Math.max(0, y - radius);
+    const y2 = Math.min(height - 1, y + radius);
+    for (let x = 0; x < width; x++) {
+      const x1 = Math.max(0, x - radius);
+      const x2 = Math.min(width - 1, x + radius);
+      const count = (x2 - x1 + 1) * (y2 - y1 + 1);
+      const sum =
+        integral[(y2 + 1) * W + (x2 + 1)] -
+        integral[y1 * W + (x2 + 1)] -
+        integral[(y2 + 1) * W + x1] +
+        integral[y1 * W + x1];
+      const mean = sum / count;
+      const v = gray[y * width + x] < mean * (1 - T) ? 0 : 255;
+      const idx = (y * width + x) * 4;
+      data[idx] = data[idx + 1] = data[idx + 2] = v;
+    }
   }
 };
 
-// Acceptă Buffer (memory storage)
-const extrageText = async (buffer) => {
-  const procesat = await preprocesareImagine(buffer);
+// Preprocesează imaginea: scale + grayscale + auto-invert + prag adaptiv.
+// O singură trecere, curată — text negru pe fond alb pentru Tesseract.
+const preprocesareImagine = async (buffer) => {
+  const img = await Jimp.read(buffer);
+
+  const latime = img.bitmap.width;
+  if (latime < 1500) {
+    img.scale(2);                 // mărește pozele mici pentru detalii
+  } else if (latime > 2400) {
+    img.scale(2400 / latime);     // micșorează pozele mari (memorie + viteză)
+  }
+
+  img.greyscale().normalize();
+
+  // Detectează fundalul: dacă imaginea e predominant întunecată → inversează,
+  // ca textul să ajungă mereu închis pe fond deschis
+  const d0 = img.bitmap.data;
+  let suma = 0;
+  for (let i = 0; i < d0.length; i += 4) suma += d0[i];
+  if (suma / (d0.length / 4) < 110) img.invert();
+
+  const { data, width, height } = img.bitmap;
+  pragAdaptiv(data, width, height);
+
+  return await img.getBuffer(JimpMime.png);
+};
+
+// Scanează documentul: preprocesare + OCR + parsare
+const scaneazaDocument = async (buffer) => {
+  let procesat;
+  try {
+    procesat = await preprocesareImagine(buffer);
+  } catch (err) {
+    console.warn('Preprocesare eșuată, folosesc originalul:', err.message);
+    procesat = buffer;
+  }
   const { data: { text } } = await Tesseract.recognize(procesat, 'ron+eng', {
-    logger: m => console.log(m)
+    logger: () => {}
   });
-  return text;
+  return { textBrut: text, dateExtrase: parseazaDateVehicul(text) };
 };
 
 const parseazaDateVehicul = (text) => {
@@ -102,18 +155,39 @@ const parseazaDateVehicul = (text) => {
     }
   }
 
+  // Fallback: OCR confundă uneori litere (ex. V→Y), deci prefixul WMI nu se
+  // potrivește. Ia primul bloc de 17 caractere cu structură validă de VIN
+  // (începe cu literă, fără I/O/Q care nu apar niciodată într-un VIN).
+  if (!date.vin) {
+    for (const candidat of vinCandidati) {
+      if (/^[A-HJ-NPR-Z][A-HJ-NPR-Z0-9]{16}$/.test(candidat)) {
+        date.vin = candidat;
+        break;
+      }
+    }
+  }
+
+  // Corectează confuziile OCR din VIN: I→1, O→0, Q→0 (aceste litere nu apar
+  // niciodată într-un VIN, deci orice apariție e de fapt o cifră citită greșit).
+  if (date.vin) {
+    date.vin = date.vin.replace(/I/g, '1').replace(/O/g, '0').replace(/Q/g, '0');
+  }
+
   // ── Număr de înmatriculare — validat față de coduri județe ────────────────
-  // Separatorul dintre componente: spații, liniuță (-), cratimă lungă (–—)
-  // OCR redă adesea "SV-67-CPY" sau "SV —67-CPY"
+  // Separatorul dintre componente: spații, liniuță (-), cratimă lungă (–—),
+  // dar și caractere pe care OCR le confundă cu liniuța: "=", ".", "~"
+  // OCR redă adesea "SV-67-CPY", "SV —67-CPY" sau "SV-67=CPY"
+  const SEP = '[\\s\\-–—=.~]*';
 
   // Strategie 1: lângă eticheta A
-  const aLabelMatch = text.match(/(?:^|\n)\s*A\b[^A-Z\n]{0,8}([A-Z]{1,2})[\s\-–—]*(\d{2,3})[\s\-–—]*([A-Z]{2,3})/im);
+  const aLabelMatch = text.match(new RegExp(`(?:^|\\n)\\s*A\\b[^A-Z\\n]{0,8}([A-Z]{1,2})${SEP}(\\d{2,3})${SEP}([A-Z]{2,3})`, 'im'));
   if (aLabelMatch && CODURI_JUDETE.has(aLabelMatch[1].toUpperCase())) {
     date.numarInmatriculare = `${aLabelMatch[1].toUpperCase()} ${aLabelMatch[2]} ${aLabelMatch[3].toUpperCase()}`;
   }
-  // Strategie 2: oriunde în text cu validare județ (cu sau fără liniuțe)
+  // Strategie 2: oriunde în text cu validare județ (cu sau fără liniuțe).
+  // Case-insensitive — OCR redă uneori litere mici (ex. "SV-67-CpY")
   if (!date.numarInmatriculare) {
-    const numarRegex = /([A-Z]{1,2})[\s\-–—]*(\d{2,3})[\s\-–—]*([A-Z]{2,3})/g;
+    const numarRegex = new RegExp(`([A-Za-z]{1,2})${SEP}(\\d{2,3})${SEP}([A-Za-z]{2,3})`, 'gi');
     let m;
     while ((m = numarRegex.exec(text)) !== null) {
       if (CODURI_JUDETE.has(m[1].toUpperCase()) && m[3].length === 3) {
@@ -154,31 +228,56 @@ const parseazaDateVehicul = (text) => {
     }
   }
 
-  // ── An fabricație ─────────────────────────────────────────────────────────
-  // Strategie 1: câmpul B (data primei înmatriculări) — linia care începe cu B
-  const bMatch = text.match(/(?:^|[\n\r])\s*B\b[^0-9\n\r]{0,8}(\d{2})[./\s-](\d{2})[./\s-](\d{4})/im);
-  if (bMatch) {
-    date.an = parseInt(bMatch[3]);
+  // ── An fabricație = data primei înmatriculări (câmpul B) ──────────────────
+  // STRICT din câmpul B (eticheta B, uneori OCR ca "8"), ca să nu confundăm cu
+  // data eliberării certificatului sau alte date (ex. certificare filtru particule).
+  // Dacă B nu e lizibil, anul rămâne null — se alege manual (combinarea trecerilor
+  // OCR crește șansa ca B să fie citit într-una dintre treceri).
+  // An fabricație ≈ data primei înmatriculări = cel mai vechi an de pe talon.
+  // Datele oficiale (prima înmatriculare, eliberare) folosesc punct/spațiu ca
+  // separator (07.04.2006). Certificarea filtrului de particule folosește liniuțe
+  // (28-01-2021), deci NU se potrivește și nu poluează rezultatul. Acceptăm și
+  // date lipite de OCR (07042006) sau cu ziua pe o cifră (7.042006).
+  const aniGasiti = [];
+  const dataRegex = /(\d{1,2})[.\s]{0,2}(\d{1,2})[.\s]{0,2}(19[6-9]\d|20[0-2]\d)/g;
+  let md;
+  while ((md = dataRegex.exec(text)) !== null) {
+    const zi = parseInt(md[1]), luna = parseInt(md[2]), an = parseInt(md[3]);
+    if (zi >= 1 && zi <= 31 && luna >= 1 && luna <= 12) aniGasiti.push(an);
   }
-  // Strategie 2: primul an rezonabil (nu din viitor) în text
-  if (!date.an) {
-    const anMatch = text.match(/\b(19[6-9]\d|200\d|201\d|202[0-5])\b/);
-    if (anMatch) date.an = parseInt(anMatch[1]);
-  }
+  if (aniGasiti.length > 0) date.an = Math.min(...aniGasiti);
 
   // ── Combustibil ───────────────────────────────────────────────────────────
   const p3 = extrageCamp(text, 'P[\\s.,]?3');
   if (p3) date.combustibil = normalizeazaCombustibil(p3);
   if (!date.combustibil) date.combustibil = detecteazaCombustibil(text);
 
-  // ── Cilindree (600–7000 cm³) ───────────────────────────────────────────────
-  const p1 = extrageCamp(text, 'P[\\s.,]?1');
-  if (p1) {
-    const m = p1.match(/(\d{3,5})/);
-    if (m) {
-      const val = parseInt(m[1]);
-      if (val >= 600 && val <= 7000) date.cilindree = val;
+  // ── Cilindree (capacitate cilindrică, câmpul P.1, 600–7000 cm³) ───────────
+  // OCR pierde uneori o cifră (1968 → 968) sau strică eticheta (P.1 → PT).
+  // Adunăm candidați din DOUĂ surse și preferăm o valoare de 4 cifre:
+  //   1. numărul de după eticheta P.1
+  //   2. numărul de 4 cifre imediat înaintea etichetei P.2 (P.1 e chiar înainte)
+  const ccCandidati = [];
+
+  const p1Regex = /P[\s.,]?1[\s:.\-]*(\d{3,5})/gi;
+  let mc;
+  while ((mc = p1Regex.exec(text)) !== null) {
+    const val = parseInt(mc[1]);
+    if (val >= 600 && val <= 7000) ccCandidati.push(val);
+  }
+
+  const p2idx = text.search(/P[\s.,]?2/);
+  if (p2idx > 0) {
+    const inainte = text.substring(Math.max(0, p2idx - 30), p2idx);
+    for (const n of inainte.match(/\d{4}/g) || []) {
+      const v = parseInt(n);
+      if (v >= 1000 && v <= 6999) ccCandidati.push(v);
     }
+  }
+
+  if (ccCandidati.length > 0) {
+    const patruCifre = ccCandidati.filter(v => v >= 1000);
+    date.cilindree = patruCifre.length > 0 ? patruCifre[0] : ccCandidati[0];
   }
 
   // ── Putere kW (30–1500) ───────────────────────────────────────────────────
@@ -188,6 +287,19 @@ const parseazaDateVehicul = (text) => {
     if (m) {
       const val = parseInt(m[1]);
       if (val >= 30 && val <= 1500) date.putereKw = val;
+    }
+  }
+  // Fallback: label P.2 citit greșit de OCR — caută prima valoare numerică rezonabilă
+  // din zona textului unde apare marca (aceeași linie din certificat)
+  if (!date.putereKw && date.marca) {
+    const marcaIdx = text.toUpperCase().indexOf(date.marca.toUpperCase());
+    if (marcaIdx >= 0) {
+      const zona = text.substring(marcaIdx, Math.min(marcaIdx + 150, text.length));
+      const mkw = zona.match(/\b(\d{2,3})\b/);
+      if (mkw) {
+        const val = parseInt(mkw[1]);
+        if (val >= 50 && val <= 400) date.putereKw = val;
+      }
     }
   }
 
@@ -211,17 +323,10 @@ const parseazaDateVehicul = (text) => {
     }
   }
 
-  // ── Date expirare viitoare (DD.MM.YYYY sau DD/MM/YYYY) ────────────────────
-  const dataPattern = /\b(\d{2})[./](\d{2})[./](\d{4})\b/g;
-  const dateViitoare = [];
-  const acum = new Date();
-  let m;
-  while ((m = dataPattern.exec(text)) !== null) {
-    const d = new Date(`${m[3]}-${m[2]}-${m[1]}`);
-    if (d > acum) dateViitoare.push(d);
-  }
-  if (dateViitoare.length > 0) date.dataITP = dateViitoare[0];
-  if (dateViitoare.length > 1) date.dataRCA = dateViitoare[1];
+  // Data ITP NU se extrage automat: pe certificat apar mai multe date (prima
+  // înmatriculare, eliberare, valabilitate ITP), iar ITP-ul real e adesea un
+  // sticker scris de mână pe care OCR nu-l poate citi corect. Se completează
+  // manual în formular ca să nu sugerăm o dată greșită. dataITP/dataRCA rămân null.
 
   return date;
 };
@@ -289,13 +394,14 @@ const normalizeazaCombustibil = (text) => {
 };
 
 const detecteazaCombustibil = (text) => {
+  // Fără word-boundary — OCR lipește des eticheta de valoare (ex. "PSMOTORINA")
   const t = text.toUpperCase();
-  if (/\bMOTORIN[AĂ]\b|\bDIESEL\b/.test(t)) return 'Motorina';
-  if (/\bBENZIN[AĂ]\b|\bGASOLINE\b/.test(t)) return 'Benzina';
-  if (/\bELECTRIC\b/.test(t)) return 'Electric';
-  if (/\bHIBRID\b|\bHYBRID\b/.test(t)) return 'Hibrid';
+  if (t.includes('MOTORIN') || t.includes('DIESEL')) return 'Motorina';
+  if (t.includes('BENZIN') || t.includes('GASOLINE')) return 'Benzina';
+  if (t.includes('ELECTRIC')) return 'Electric';
+  if (t.includes('HIBRID') || t.includes('HYBRID')) return 'Hibrid';
   if (/\bGPL\b|\bLPG\b/.test(t)) return 'GPL';
   return null;
 };
 
-module.exports = { extrageText, parseazaDateVehicul };
+module.exports = { scaneazaDocument, parseazaDateVehicul };

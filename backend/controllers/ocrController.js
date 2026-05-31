@@ -1,4 +1,4 @@
-const { extrageText, parseazaDateVehicul } = require('../services/ocrService');
+const { scaneazaDocument } = require('../services/ocrService');
 
 const proceseazaImagine = async (req, res) => {
   try {
@@ -8,19 +8,16 @@ const proceseazaImagine = async (req, res) => {
 
     console.log('Procesez imaginea:', req.file.originalname, req.file.size, 'bytes');
 
-    // req.file.buffer — imagine în memorie (memory storage)
-    const textExtras = await extrageText(req.file.buffer);
+    // Mai multe treceri OCR (preprocesări diferite) + combinarea rezultatelor
+    const { textBrut, dateExtrase } = await scaneazaDocument(req.file.buffer);
 
-    console.log('\n=== TEXT BRUT OCR ===\n', textExtras, '\n====================\n');
-
-    const dateVehicul = parseazaDateVehicul(textExtras);
-
-    console.log('DATE EXTRASE:', JSON.stringify(dateVehicul, null, 2));
+    console.log('\n=== TEXT BRUT OCR ===\n', textBrut, '\n====================\n');
+    console.log('DATE EXTRASE:', JSON.stringify(dateExtrase, null, 2));
 
     res.json({
       succes: true,
-      textBrut: textExtras,
-      dateExtrase: dateVehicul
+      textBrut,
+      dateExtrase
     });
 
   } catch (error) {
