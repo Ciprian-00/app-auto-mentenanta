@@ -448,10 +448,10 @@ const s = {
   graficNrIntrari: { margin: 0, fontSize: '11px', color: '#334155', fontWeight: '700' },
   intervalRow: { display: 'flex', gap: '4px' },
   intervalBtn: { background: 'none', border: 'none', outline: 'none', color: '#334155', borderRadius: '8px', padding: '4px 10px', fontSize: '10px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px', fontFamily: '"Inter", sans-serif' },
-  intervalBtnActiv: { backgroundColor: 'rgba(0,229,255,0.12)', color: '#00e5ff' },
+  intervalBtnActiv: { background: 'rgba(0,229,255,0.12)', color: '#00e5ff' },
   categorieRow: { display: 'flex', gap: '6px', marginBottom: '12px' },
   categorieBtn: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#475569', borderRadius: '20px', padding: '5px 12px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.3px', fontFamily: '"Inter", sans-serif', outline: 'none' },
-  categorieBtnActiv: { backgroundColor: 'rgba(0,229,255,0.12)', borderColor: 'rgba(0,229,255,0.3)', color: '#00e5ff' },
+  categorieBtnActiv: { background: 'rgba(0,229,255,0.12)', border: '1px solid rgba(0,229,255,0.3)', color: '#00e5ff' },
 };
 
 export default Dashboard;
