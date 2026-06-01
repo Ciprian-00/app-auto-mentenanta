@@ -7,7 +7,7 @@ const ANUL_MAX = new Date().getFullYear() + 1;
 const ANI = Array.from({ length: ANUL_MAX - 1990 + 1 }, (_, i) => ANUL_MAX - i);
 
 const FORM_GOL = {
-  marca: '', model: '', an: '', motor: '',
+  marca: '', model: '', an: '', motor: '', vin: '',
   numarInmatriculare: '', kilometrajCurent: '',
   obtinereITP: '', dataITP: '',
   obtinereRCA: '', dataRCA: '',
@@ -77,6 +77,7 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
           kilometraj: Number(form.ultimulSchimbUleiKilometraj) || null,
         },
       };
+      if (form.vin?.trim()) payload.vin = form.vin.trim();
 
       const res = await api.post('/vehicles', payload);
       const vehicleId = res?.data?._id;
@@ -123,14 +124,14 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
             <div style={s.field}>
               <label style={s.label}>MARCĂ</label>
               <select value={form.marca} onChange={e => set('marca', e.target.value)} style={s.input} required>
-                <option value="">Alege</option>
+                <option value="">Alege marca</option>
                 {MARCI.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div style={s.field}>
               <label style={s.label}>MODEL</label>
               <select value={form.model} onChange={e => set('model', e.target.value)} style={s.input} required disabled={!form.marca || loadingModele}>
-                <option value="">{loadingModele ? 'Se încarcă...' : !form.marca ? 'Alege marca' : modele.length === 0 ? 'N/A' : 'Alege'}</option>
+                <option value="">{loadingModele ? 'Se încarcă...' : !form.marca ? 'Alege mai întâi marca' : 'Alege modelul'}</option>
                 {modele.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
@@ -140,14 +141,14 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
             <div style={s.field}>
               <label style={s.label}>AN FABRICAȚIE</label>
               <select value={form.an} onChange={e => set('an', e.target.value)} style={s.input} required disabled={!form.model}>
-                <option value="">{!form.model ? 'Alege modelul' : 'Alege'}</option>
+                <option value="">{!form.model ? 'Alege mai întâi modelul' : 'Alege anul'}</option>
                 {ANI.map(an => <option key={an} value={an}>{an}</option>)}
               </select>
             </div>
             <div style={s.field}>
               <label style={s.label}>MOTORIZARE</label>
               <select value={form.motor} onChange={e => set('motor', e.target.value)} style={s.input} required disabled={!form.an || loadingMot}>
-                <option value="">{loadingMot ? 'Se încarcă...' : !form.an ? 'Alege anul' : motorizari.length === 0 ? 'Nicio motorizare' : 'Alege'}</option>
+                <option value="">{loadingMot ? 'Se încarcă...' : !form.an ? 'Alege mai întâi anul' : motorizari.length === 0 ? 'Nicio motorizare găsită' : 'Alege motorizarea'}</option>
                 {motorizari.map((m, i) => <option key={i} value={m.motor}>{m.motor} · {m.tipCombustibil}</option>)}
               </select>
             </div>
@@ -162,6 +163,11 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
               <label style={s.label}>KILOMETRAJ</label>
               <input type="number" value={form.kilometrajCurent} onChange={e => set('kilometrajCurent', e.target.value)} placeholder="85000" style={s.input} />
             </div>
+          </div>
+
+          <div style={s.field}>
+            <label style={s.label}>SERIE ȘASIU (VIN)</label>
+            <input value={form.vin} maxLength={17} onChange={e => set('vin', e.target.value)} placeholder="17 caractere" style={s.input} />
           </div>
 
           <div style={s.divider}>DOCUMENTE</div>

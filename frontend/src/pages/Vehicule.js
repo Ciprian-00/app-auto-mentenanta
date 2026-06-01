@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 import CarWatermark from '../components/CarWatermark';
 import AlegeMetoda from '../components/AlegeMetoda';
+import AdaugaVehiculModal from '../components/AdaugaVehiculModel';
 
 const MARCI = ['Audi', 'BMW', 'Dacia', 'Ford', 'Mercedes-Benz', 'Renault', 'Skoda', 'Toyota', 'Volkswagen'];
 const ANI = Array.from({ length: 2027 - 1960 + 1 }, (_, i) => 2027 - i);
@@ -12,11 +13,8 @@ const ZI_MS = 1000 * 60 * 60 * 24;
 const FORM_GOL = {
   marca: '', model: '', an: '', motor: '', vin: '',
   numarInmatriculare: '', kilometrajCurent: '',
-  obtinereITP: '', dataITP: '',
-  obtinereRCA: '', dataRCA: '',
-  obtinereRovinieta: '', dataRovinieta: '',
-  costITP: '', costRCA: '', costRovinieta: '',
-  ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: '', costUlei: '',
+  dataITP: '', dataRCA: '', dataRovinieta: '',
+  ultimulSchimbUleiData: '', ultimulSchimbUleiKilometraj: '',
 };
 
 const zileRamase = (data) => Math.ceil((new Date(data) - new Date()) / ZI_MS);
@@ -50,7 +48,6 @@ const Vehicule = () => {
   const [vehicule, setVehicule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
 
   const [modeleDisponibile, setModeleDisponibile] = useState([]);
@@ -60,6 +57,7 @@ const Vehicule = () => {
 
   const [formVehicul, setFormVehicul] = useState(FORM_GOL);
   const [showChoice, setShowChoice] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
   const set = (key, val) => setFormVehicul(f => ({ ...f, [key]: val }));
 
   useEffect(() => {
@@ -100,17 +98,8 @@ const Vehicule = () => {
     }
   };
 
-  const openAddModal = () => {
-    setIsEditing(false);
-    setFormVehicul(FORM_GOL);
-    setModeleDisponibile([]);
-    setMotorizariDisponibile([]);
-    setShowModal(true);
-  };
-
   const openEditModal = (e, vehicul) => {
     e.stopPropagation();
-    setIsEditing(true);
     setCurrentId(vehicul._id);
     setFormVehicul({
       ...FORM_GOL,
@@ -130,6 +119,7 @@ const Vehicule = () => {
     setShowModal(true);
   };
 
+  // Salvează modificările unei mașini existente (adăugarea se face în AdaugaVehiculModal)
   const handleSave = async (e) => {
     e.preventDefault();
     if (!formVehicul.marca || !formVehicul.model || !formVehicul.an || !formVehicul.motor) {
@@ -155,27 +145,8 @@ const Vehicule = () => {
     if (formVehicul.vin?.trim()) payload.vin = formVehicul.vin.trim();
 
     try {
-      if (isEditing) {
-        await api.put(`/vehicles/${currentId}`, payload);
-        toast.success('Informații actualizate!');
-      } else {
-        const res = await api.post('/vehicles', payload);
-        const vehicleId = res.data._id;
-        await api.post(`/reminders/genereaza/${vehicleId}`);
-
-        // La adăugare, costurile introduse devin intrări de cheltuieli
-        const azi = new Date().toISOString().split('T')[0];
-        const loguriInitiale = [
-          formVehicul.costITP && { tip: 'ITP', categorie: 'document', data: formVehicul.obtinereITP || azi, cost: Number(formVehicul.costITP) },
-          formVehicul.costRCA && { tip: 'RCA', categorie: 'document', data: formVehicul.obtinereRCA || azi, cost: Number(formVehicul.costRCA) },
-          formVehicul.costRovinieta && { tip: 'Rovinietă', categorie: 'document', data: formVehicul.obtinereRovinieta || azi, cost: Number(formVehicul.costRovinieta) },
-          formVehicul.costUlei && formVehicul.ultimulSchimbUleiData && { tip: 'Schimb ulei', categorie: 'service', data: formVehicul.ultimulSchimbUleiData, kilometraj: Number(formVehicul.ultimulSchimbUleiKilometraj) || 0, cost: Number(formVehicul.costUlei) },
-        ].filter(Boolean);
-        if (loguriInitiale.length) {
-          await Promise.all(loguriInitiale.map(l => api.post(`/maintenance/vehicul/${vehicleId}`, l)));
-        }
-        toast.success('Mașina a fost adăugată!');
-      }
+      await api.put(`/vehicles/${currentId}`, payload);
+      toast.success('Informații actualizate!');
       setShowModal(false);
       fetchVehicule();
     } catch (error) {
@@ -309,8 +280,15 @@ const Vehicule = () => {
       {showChoice && (
         <AlegeMetoda
           onScanner={() => { setShowChoice(false); navigate('/scanner'); }}
-          onManual={() => { setShowChoice(false); openAddModal(); }}
+          onManual={() => { setShowChoice(false); setShowAdd(true); }}
           onClose={() => setShowChoice(false)}
+        />
+      )}
+
+      {showAdd && (
+        <AdaugaVehiculModal
+          onClose={() => setShowAdd(false)}
+          onSuccess={() => { setShowAdd(false); fetchVehicule(); }}
         />
       )}
 
@@ -318,7 +296,7 @@ const Vehicule = () => {
         <div style={s.overlay} onClick={() => setShowModal(false)}>
           <div style={s.modal} onClick={e => e.stopPropagation()}>
             <div style={s.modalHeader}>
-              <h2 style={s.modalTitlu}>{isEditing ? 'EDITARE VEHICUL' : 'ADAUGĂ VEHICUL NOU'}</h2>
+              <h2 style={s.modalTitlu}>EDITARE VEHICUL</h2>
               <button onClick={() => setShowModal(false)} style={s.closeBtn}>✕</button>
             </div>
 
@@ -382,59 +360,20 @@ const Vehicule = () => {
 
               <div style={s.divider}>DOCUMENTE</div>
 
-              {isEditing ? (
-                <>
-                  <div style={s.formRow}>
-                    <div style={s.field}>
-                      <label style={s.label}>DATA ITP</label>
-                      <input type="date" style={s.dateInput} value={formVehicul.dataITP} onChange={e => set('dataITP', e.target.value)} />
-                    </div>
-                    <div style={s.field}>
-                      <label style={s.label}>DATA RCA</label>
-                      <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => set('dataRCA', e.target.value)} />
-                    </div>
-                  </div>
-                  <div style={s.field}>
-                    <label style={s.label}>DATA ROVINIETĂ</label>
-                    <input type="date" style={s.dateInput} value={formVehicul.dataRovinieta} onChange={e => set('dataRovinieta', e.target.value)} />
-                  </div>
-                </>
-              ) : (
-                [
-                  { doc: 'ITP', obtKey: 'obtinereITP', expKey: 'dataITP', costKey: 'costITP', placeholder: 'ex: 200' },
-                  { doc: 'RCA', obtKey: 'obtinereRCA', expKey: 'dataRCA', costKey: 'costRCA', placeholder: 'ex: 800' },
-                  { doc: 'ROVINIETĂ', obtKey: 'obtinereRovinieta', expKey: 'dataRovinieta', costKey: 'costRovinieta', placeholder: 'ex: 28' },
-                ].map(d => (
-                  <div key={d.doc} style={s.docGrup}>
-                    <p style={s.docGrupLabel}>{d.doc}</p>
-                    <div style={s.formRow}>
-                      <div style={s.field}>
-                        <label style={s.label}>DATA {d.doc}</label>
-                        <input type="date" style={s.dateInput} value={formVehicul[d.obtKey]}
-                          onChange={e => {
-                            // Expirarea se completează automat la +1 an de la data obținerii
-                            const val = e.target.value;
-                            const upd = { ...formVehicul, [d.obtKey]: val };
-                            if (val) {
-                              const exp = new Date(val);
-                              exp.setFullYear(exp.getFullYear() + 1);
-                              upd[d.expKey] = exp.toISOString().split('T')[0];
-                            }
-                            setFormVehicul(upd);
-                          }} />
-                      </div>
-                      <div style={s.field}>
-                        <label style={s.label}>EXPIRĂ</label>
-                        <input type="date" style={s.dateInput} value={formVehicul[d.expKey]} onChange={e => set(d.expKey, e.target.value)} />
-                      </div>
-                    </div>
-                    <div style={s.field}>
-                      <label style={s.label}>COST {d.doc} (lei)</label>
-                      <input type="number" style={s.input} value={formVehicul[d.costKey]} onChange={e => set(d.costKey, e.target.value)} placeholder={d.placeholder} />
-                    </div>
-                  </div>
-                ))
-              )}
+              <div style={s.formRow}>
+                <div style={s.field}>
+                  <label style={s.label}>DATA ITP</label>
+                  <input type="date" style={s.dateInput} value={formVehicul.dataITP} onChange={e => set('dataITP', e.target.value)} />
+                </div>
+                <div style={s.field}>
+                  <label style={s.label}>DATA RCA</label>
+                  <input type="date" style={s.dateInput} value={formVehicul.dataRCA} onChange={e => set('dataRCA', e.target.value)} />
+                </div>
+              </div>
+              <div style={s.field}>
+                <label style={s.label}>DATA ROVINIETĂ</label>
+                <input type="date" style={s.dateInput} value={formVehicul.dataRovinieta} onChange={e => set('dataRovinieta', e.target.value)} />
+              </div>
 
               <div style={s.divider}>ULTIMUL SCHIMB ULEI</div>
 
@@ -449,14 +388,7 @@ const Vehicule = () => {
                 </div>
               </div>
 
-              {!isEditing && (
-                <div style={s.field}>
-                  <label style={s.label}>COST ULEI (lei, opțional)</label>
-                  <input type="number" style={s.input} value={formVehicul.costUlei} onChange={e => set('costUlei', e.target.value)} placeholder="ex: 280" />
-                </div>
-              )}
-
-              <button type="submit" style={s.saveBtn}>{isEditing ? 'ACTUALIZEAZĂ DATELE' : 'SALVEAZĂ VEHICUL'}</button>
+              <button type="submit" style={s.saveBtn}>ACTUALIZEAZĂ DATELE</button>
             </form>
           </div>
         </div>
