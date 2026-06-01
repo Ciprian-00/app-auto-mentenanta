@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+// URL-ul backend-ului: în producție vine din REACT_APP_API_URL,
+// iar local cade pe localhost.
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
 });
 
 api.interceptors.request.use((config) => {
