@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import CarWatermark from '../components/CarWatermark';
 
 const SUGESTII_TIP = ['Revizie', 'Schimb ulei', 'Anvelope', 'Frâne', 'Distribuție', 'Reparație', 'ITP', 'Altele'];
 const FORM_ISTORIC_GOL = { tip: '', data: '', kilometraj: '', descriere: '', cost: '', service: '' };
@@ -21,7 +22,7 @@ const toDateInput = (data) => {
 
 // Status pentru documente (ITP/RCA/Rovinietă) pe baza datei de expirare
 const statusDoc = (data) => {
-  if (!data) return { culoare: '#475569', text: '—' };
+  if (!data) return { culoare: 'var(--text-faint)', text: '—' };
   const zile = zileRamase(data);
   if (zile < 0) return { culoare: '#ff4d4d', text: 'Expirat' };
   if (zile <= 30) return { culoare: '#fbbf24', text: `${zile}z` };
@@ -31,7 +32,7 @@ const statusDoc = (data) => {
 // Status pentru mentenanță (ulei/distribuție/lichid frână). Se calculează data
 // următoare (luni sau ani) și se verifică și depășirea de kilometraj.
 const calcStatus = ({ data, plusLuni, plusAni, kmPrag, kmUltima, kmCurent, prag }) => {
-  if (!data) return { culoare: '#475569', text: null };
+  if (!data) return { culoare: 'var(--text-faint)', text: null };
   const urmatoare = new Date(data);
   if (plusAni) urmatoare.setFullYear(urmatoare.getFullYear() + plusAni);
   if (plusLuni) urmatoare.setMonth(urmatoare.getMonth() + plusLuni);
@@ -314,7 +315,7 @@ const DetaliiVehicul = () => {
   if (loading) return (
     <div style={s.loadingWrap}>
       <div style={s.loadingSpinner} />
-      <p style={{ color: '#00e5ff', letterSpacing: '2px', fontSize: '0.85rem', marginTop: '1rem' }}>SE INIȚIALIZEAZĂ...</p>
+      <p style={{ color: 'var(--accent)', letterSpacing: '2px', fontSize: '0.85rem', marginTop: '1rem' }}>SE INIȚIALIZEAZĂ...</p>
     </div>
   );
   if (!vehicul) return null;
@@ -359,17 +360,17 @@ const DetaliiVehicul = () => {
           </svg>
           <span style={s.backText}>ÎNAPOI</span>
         </button>
-        <span style={s.navMarca}>{vehicul.marca?.toUpperCase()}</span>
+        <span style={s.navMarca}>DETALII</span>
         <div style={{ width: '70px' }} />
       </nav>
 
       {/* Antet cu marca, numărul și kilometrajul */}
       <div style={s.hero}>
-        <div style={s.heroWatermark}>{vehicul.marca?.toUpperCase()}</div>
+        <CarWatermark style={{ right: '20px', top: '44%', transform: 'translateY(-50%)', height: '112px', opacity: 0.15 }} />
         <div style={s.heroContent}>
           <div style={s.heroTop}>
             <div>
-              <p style={s.heroNume}>{vehicul.marca} <span style={{ color: '#00e5ff' }}>{vehicul.model}</span></p>
+              <p style={s.heroNume}>{vehicul.marca} <span style={{ color: 'var(--accent)' }}>{vehicul.model}</span></p>
               <p style={s.heroMeta}>{vehicul.an} · {vehicul.motor}</p>
             </div>
             {vehicul.numarInmatriculare && (
@@ -571,7 +572,7 @@ const DetaliiVehicul = () => {
                     <span style={s.rowLabel}>{item.label}</span>
                     {item.code
                       ? <span style={s.filtruCode}>{item.val}</span>
-                      : <span style={{ ...s.rowVal, ...(item.cyan ? { color: '#00e5ff' } : {}) }}>{item.val}</span>}
+                      : <span style={{ ...s.rowVal, ...(item.cyan ? { color: 'var(--accent)' } : {}) }}>{item.val}</span>}
                   </div>
                 </div>
               ))}
@@ -585,7 +586,7 @@ const DetaliiVehicul = () => {
           <div style={s.card}>
             <div style={s.row}>
               <span style={s.rowLabel}>Serie șasiu (VIN)</span>
-              <span style={{ ...s.rowVal, fontFamily: 'monospace', fontSize: '0.8rem', color: vehicul.vin ? '#fff' : '#475569' }}>
+              <span style={{ ...s.rowVal, fontFamily: 'monospace', fontSize: '0.8rem', color: vehicul.vin ? 'var(--text)' : 'var(--text-faint)' }}>
                 {vehicul.vin || 'Nespecificat'}
               </span>
             </div>
@@ -760,92 +761,92 @@ const DetaliiVehicul = () => {
 };
 
 const s = {
-  pagina: { backgroundColor: '#0b0e14', color: '#fff', minHeight: '100vh', fontFamily: '"Inter", sans-serif', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' },
-  loadingWrap: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0b0e14' },
-  loadingSpinner: { width: '40px', height: '40px', border: '3px solid rgba(0,229,255,0.2)', borderTop: '3px solid #00e5ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
+  pagina: { backgroundColor: 'var(--bg)', color: 'var(--text)', minHeight: '100vh', fontFamily: '"Inter", sans-serif', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' },
+  loadingWrap: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)' },
+  loadingSpinner: { width: '40px', height: '40px', border: '3px solid rgba(0,229,255,0.2)', borderTop: '3px solid var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
 
-  navbar: { position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(11,14,20,0.9)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  backBtn: { background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px' },
-  backText: { fontSize: '0.72rem', fontWeight: '700', letterSpacing: '1px', color: '#64748b' },
-  navMarca: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '2.5px', color: '#00e5ff' },
+  navbar: { position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'var(--nav-bg)', backdropFilter: 'blur(16px)', borderBottom: '1px solid var(--border-soft)', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  backBtn: { background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '4px' },
+  backText: { fontSize: '0.72rem', fontWeight: '700', letterSpacing: '1px', color: 'var(--text-dim)' },
+  navMarca: { fontSize: '0.72rem', fontWeight: '800', letterSpacing: '2.5px', color: 'var(--accent)' },
 
-  hero: { position: 'relative', background: 'linear-gradient(160deg, #0d1626 0%, #080b12 100%)', padding: '24px 20px 28px', overflow: 'hidden', borderBottom: '1px solid rgba(0,229,255,0.08)' },
-  heroWatermark: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '6rem', fontWeight: '900', color: 'rgba(255,255,255,0.02)', letterSpacing: '8px', userSelect: 'none', whiteSpace: 'nowrap', pointerEvents: 'none' },
+  hero: { position: 'relative', background: 'var(--hero-grad)', padding: '24px 20px 28px', overflow: 'hidden', borderBottom: '1px solid rgba(0,229,255,0.08)', color: 'var(--text)' },
+  heroWatermark: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '6rem', fontWeight: '900', color: 'var(--watermark)', letterSpacing: '8px', userSelect: 'none', whiteSpace: 'nowrap', pointerEvents: 'none' },
   heroContent: { position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '20px' },
   heroTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' },
   heroNume: { fontSize: '1.5rem', fontWeight: '800', margin: '0 0 4px 0', letterSpacing: '-0.3px', lineHeight: 1.2 },
-  heroMeta: { fontSize: '0.68rem', color: '#64748b', margin: 0, letterSpacing: '1px', fontWeight: '600' },
+  heroMeta: { fontSize: '0.68rem', color: 'var(--text-dim)', margin: 0, letterSpacing: '1px', fontWeight: '600' },
   placuta: { display: 'inline-flex', alignItems: 'center', border: '2px solid rgba(255,255,255,0.15)', borderRadius: '5px', overflow: 'hidden', flexShrink: 0 },
   placutaRo: { background: '#003399', color: '#fff', fontSize: '0.55rem', fontWeight: '900', padding: '5px 6px', letterSpacing: '0.5px' },
   placutaNr: { background: '#fff', color: '#000', fontSize: '0.85rem', fontWeight: '900', padding: '5px 10px', letterSpacing: '2px' },
-  heroKmRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px 18px' },
-  heroKmLabel: { fontSize: '0.58rem', color: '#64748b', fontWeight: '700', letterSpacing: '1.5px', margin: '0 0 6px 0' },
-  heroKm: { fontSize: '2.4rem', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: '#fff' },
-  heroKmUnit: { fontSize: '1rem', color: '#64748b', fontWeight: '500' },
-  kmBtn: { display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,229,255,0.1)', border: '1px solid rgba(0,229,255,0.3)', color: '#00e5ff', borderRadius: '8px', padding: '9px 14px', fontSize: '0.65rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  heroKmRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', backgroundColor: 'var(--inset)', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px 18px' },
+  heroKmLabel: { fontSize: '0.58rem', color: 'var(--text-dim)', fontWeight: '700', letterSpacing: '1.5px', margin: '0 0 6px 0' },
+  heroKm: { fontSize: '2.4rem', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: 'var(--text)' },
+  heroKmUnit: { fontSize: '1rem', color: 'var(--text-dim)', fontWeight: '500' },
+  kmBtn: { display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(0,229,255,0.1)', border: '1px solid rgba(0,229,255,0.3)', color: 'var(--accent)', borderRadius: '8px', padding: '9px 14px', fontSize: '0.65rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', whiteSpace: 'nowrap' },
 
   body: { padding: '20px', display: 'flex', flexDirection: 'column', gap: '0' },
   sectiune: { marginBottom: '24px' },
-  sectLabel: { fontSize: '0.6rem', color: '#64748b', fontWeight: '800', letterSpacing: '2px', marginBottom: '10px', paddingLeft: '2px' },
-  loadingTag: { color: '#475569', fontStyle: 'italic', fontWeight: '400' },
+  sectLabel: { fontSize: '0.6rem', color: 'var(--text-dim)', fontWeight: '800', letterSpacing: '2px', marginBottom: '10px', paddingLeft: '2px' },
+  loadingTag: { color: 'var(--text-faint)', fontStyle: 'italic', fontWeight: '400' },
 
-  card: { backgroundColor: '#13161f', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'rgba(255,255,255,0.02)' },
-  cardHeaderTitlu: { fontSize: '0.6rem', color: '#64748b', fontWeight: '800', letterSpacing: '1.5px' },
-  editBtn: { background: 'none', border: '1px solid rgba(0,229,255,0.25)', color: '#00e5ff', fontSize: '0.6rem', fontWeight: '700', letterSpacing: '1px', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer' },
+  card: { backgroundColor: 'var(--surface)', borderRadius: '14px', border: '1px solid var(--border-soft)', overflow: 'hidden' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border-soft)', backgroundColor: 'var(--inset)' },
+  cardHeaderTitlu: { fontSize: '0.6rem', color: 'var(--text-dim)', fontWeight: '800', letterSpacing: '1.5px' },
+  editBtn: { background: 'none', border: '1px solid rgba(0,229,255,0.25)', color: 'var(--accent)', fontSize: '0.6rem', fontWeight: '700', letterSpacing: '1px', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer' },
 
   row: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 16px', minHeight: '46px' },
-  rowDiv: { height: '1px', backgroundColor: 'rgba(255,255,255,0.04)', margin: '0 16px' },
-  rowLabel: { fontSize: '0.875rem', color: '#94a3b8' },
+  rowDiv: { height: '1px', backgroundColor: 'var(--border-soft)', margin: '0 16px' },
+  rowLabel: { fontSize: '0.875rem', color: 'var(--text-muted)' },
   rowRight: { display: 'flex', alignItems: 'center', gap: '8px' },
-  rowVal: { fontSize: '0.875rem', fontWeight: '600', color: '#fff', textAlign: 'right' },
-  rowSub: { margin: '3px 0 0', fontSize: '11px', color: '#475569' },
-  rowSubGol: { margin: '3px 0 0', fontSize: '11px', color: '#334155' },
+  rowVal: { fontSize: '0.875rem', fontWeight: '600', color: 'var(--text)', textAlign: 'right' },
+  rowSub: { margin: '3px 0 0', fontSize: '11px', color: 'var(--text-faint)' },
+  rowSubGol: { margin: '3px 0 0', fontSize: '11px', color: 'var(--text-fainter)' },
 
   pill: { fontSize: '0.62rem', fontWeight: '700', padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.5px', whiteSpace: 'nowrap' },
-  editRowBtn: { background: 'none', border: 'none', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 },
-  delBtn: { background: 'none', border: 'none', color: '#475569', fontSize: '0.7rem', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 },
-  addRowBtn: { display: 'block', width: '100%', background: 'none', border: 'none', color: '#00e5ff', fontSize: '0.82rem', fontWeight: '600', padding: '13px 16px', cursor: 'pointer', textAlign: 'left', letterSpacing: '0.3px' },
+  editRowBtn: { background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: '0.85rem', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 },
+  delBtn: { background: 'none', border: 'none', color: 'var(--text-faint)', fontSize: '0.7rem', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 },
+  addRowBtn: { display: 'block', width: '100%', background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.82rem', fontWeight: '600', padding: '13px 16px', cursor: 'pointer', textAlign: 'left', letterSpacing: '0.3px' },
   emptyRow: { padding: '20px 16px' },
-  emptyText: { margin: 0, fontSize: '0.85rem', color: '#475569' },
+  emptyText: { margin: 0, fontSize: '0.85rem', color: 'var(--text-faint)' },
 
   // Lista de intervenții
-  istoricSep: { height: '1px', backgroundColor: 'rgba(255,255,255,0.05)' },
+  istoricSep: { height: '1px', backgroundColor: 'var(--border-soft)' },
   istoricHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px' },
-  istoricHeadTitlu: { fontSize: '10px', fontWeight: '700', color: '#334155', letterSpacing: '1.5px' },
+  istoricHeadTitlu: { fontSize: '10px', fontWeight: '700', color: 'var(--text-fainter)', letterSpacing: '1.5px' },
   istoricBadges: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' },
-  istoricTip: { fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '20px', backgroundColor: 'rgba(0,229,255,0.1)', color: '#00e5ff' },
-  istoricData: { fontSize: '11px', color: '#475569' },
+  istoricTip: { fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '20px', backgroundColor: 'rgba(0,229,255,0.1)', color: 'var(--accent)' },
+  istoricData: { fontSize: '11px', color: 'var(--text-faint)' },
   istoricCost: { fontSize: '11px', color: '#10b981', fontWeight: '700' },
   istoricMetaRow: { display: 'flex', flexWrap: 'wrap', gap: '10px' },
-  istoricMeta: { fontSize: '11px', color: '#64748b' },
-  istoricDesc: { margin: '4px 0 0', fontSize: '11px', color: '#94a3b8', lineHeight: '1.4' },
+  istoricMeta: { fontSize: '11px', color: 'var(--text-dim)' },
+  istoricDesc: { margin: '4px 0 0', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' },
   istoricActiuni: { display: 'flex', gap: '6px', flexShrink: 0 },
 
   // Recomandări service
   recRow: { padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' },
   recRowLeft: { flex: 1 },
   recTip: { fontSize: '0.68rem', fontWeight: '800', letterSpacing: '1px', display: 'block', marginBottom: '5px' },
-  recMesaj: { margin: '0 0 4px 0', fontSize: '0.83rem', color: '#e2e8f0', lineHeight: 1.4 },
-  recDetalii: { margin: 0, fontSize: '0.74rem', color: '#64748b' },
+  recMesaj: { margin: '0 0 4px 0', fontSize: '0.83rem', color: 'var(--text-strong)', lineHeight: 1.4 },
+  recDetalii: { margin: 0, fontSize: '0.74rem', color: 'var(--text-dim)' },
   urgentTag: { background: 'rgba(255,77,77,0.15)', color: '#ff4d4d', fontSize: '0.58rem', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '1px', whiteSpace: 'nowrap', flexShrink: 0 },
   atentieTag: { background: 'rgba(251,191,36,0.15)', color: '#fbbf24', fontSize: '0.58rem', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '1px', whiteSpace: 'nowrap', flexShrink: 0 },
-  filtruCode: { fontSize: '0.82rem', fontWeight: '700', color: '#00e5ff', fontFamily: 'monospace', background: 'rgba(0,229,255,0.08)', padding: '3px 10px', borderRadius: '5px' },
+  filtruCode: { fontSize: '0.82rem', fontWeight: '700', color: 'var(--accent)', fontFamily: 'monospace', background: 'rgba(0,229,255,0.08)', padding: '3px 10px', borderRadius: '5px' },
 
   // Modale
   overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  modal: { background: 'linear-gradient(180deg, #13161f 0%, #0b0e14 100%)', width: '100%', maxWidth: '420px', padding: '24px', borderRadius: '15px', border: '1px solid rgba(0,229,255,0.2)' },
+  modal: { background: 'linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%)', width: '100%', maxWidth: '420px', padding: '24px', borderRadius: '15px', border: '1px solid rgba(0,229,255,0.2)' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  modalTitlu: { margin: 0, fontSize: '0.85rem', fontWeight: '800', color: '#00e5ff', letterSpacing: '1.5px' },
-  closeBtn: { background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer', lineHeight: 1 },
+  modalTitlu: { margin: 0, fontSize: '0.85rem', fontWeight: '800', color: 'var(--accent)', letterSpacing: '1.5px' },
+  closeBtn: { background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: '1.2rem', cursor: 'pointer', lineHeight: 1 },
   modalForm: { display: 'flex', flexDirection: 'column', gap: '14px' },
-  mLabel: { fontSize: '0.68rem', fontWeight: '700', color: '#64748b', letterSpacing: '1px', marginBottom: '-8px' },
-  mInput: { backgroundColor: '#0b0e14', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' },
+  mLabel: { fontSize: '0.68rem', fontWeight: '700', color: 'var(--text-dim)', letterSpacing: '1px', marginBottom: '-8px' },
+  mInput: { backgroundColor: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '8px', padding: '12px 14px', color: 'var(--text)', fontSize: '0.95rem', outline: 'none', width: '100%', boxSizing: 'border-box' },
   infoBox: { backgroundColor: 'rgba(0,229,255,0.06)', border: '1px solid rgba(0,229,255,0.12)', borderRadius: '8px', padding: '11px 14px' },
-  infoText: { margin: 0, fontSize: '0.8rem', color: '#94a3b8' },
-  saveBtn: { backgroundColor: '#00e5ff', color: '#001f24', border: 'none', borderRadius: '8px', padding: '14px', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', marginTop: '4px', width: '100%' },
-  docGrup: { display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' },
-  docGrupLabel: { margin: 0, fontSize: '0.6rem', fontWeight: '800', color: '#00e5ff', letterSpacing: '1.5px' },
+  infoText: { margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' },
+  saveBtn: { backgroundColor: 'var(--accent)', color: 'var(--accent-ink)', border: 'none', borderRadius: '8px', padding: '14px', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', marginTop: '4px', width: '100%' },
+  docGrup: { display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '12px', borderBottom: '1px solid var(--border-soft)' },
+  docGrupLabel: { margin: 0, fontSize: '0.6rem', fontWeight: '800', color: 'var(--accent)', letterSpacing: '1.5px' },
   docGrupRow: { display: 'flex', gap: '10px', alignItems: 'flex-end' },
 };
 
