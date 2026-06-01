@@ -20,6 +20,9 @@ const userSchema = new mongoose.Schema({
   telefon: {
     type: String,
     trim: true
+  },
+  setari: {
+    zileInainteAlerta: { type: Number, default: 30 }
   }
 }, { timestamps: true });
 

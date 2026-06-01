@@ -1,6 +1,7 @@
 const Reminder = require('../models/Reminder');
 const Vehicle = require('../models/Vehicle');
 const VehicleSpec = require('../models/VehicleSpec');
+const User = require('../models/User');
 
 const zileRamase = (dataExpirare) => {
   const acum = new Date();
@@ -22,12 +23,16 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
     $or: [{ anStop: null }, { anStop: { $gte: vehicul.an } }]
   });
 
+  // Pragul de avertizare (cate zile inainte) il alege utilizatorul din setari
+  const user = await User.findById(utilizatorId).select('setari');
+  const zilePrag = user?.setari?.zileInainteAlerta || 30;
+
   const remindereDeCreat = [];
 
   if (vehicul.dataITP) {
     remindereDeCreat.push({
       utilizator: utilizatorId, vehicul: vehiculId, tip: 'ITP',
-      dataExpirare: vehicul.dataITP, zileInainte: 30,
+      dataExpirare: vehicul.dataITP, zileInainte: zilePrag,
       mesaj: `ITP-ul pentru ${vehicul.marca} ${vehicul.model} expira pe ${new Date(vehicul.dataITP).toLocaleDateString('ro-RO')}`
     });
   }
@@ -35,7 +40,7 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
   if (vehicul.dataRCA) {
     remindereDeCreat.push({
       utilizator: utilizatorId, vehicul: vehiculId, tip: 'RCA',
-      dataExpirare: vehicul.dataRCA, zileInainte: 30,
+      dataExpirare: vehicul.dataRCA, zileInainte: zilePrag,
       mesaj: `RCA-ul pentru ${vehicul.marca} ${vehicul.model} expira pe ${new Date(vehicul.dataRCA).toLocaleDateString('ro-RO')}`
     });
   }
@@ -43,7 +48,7 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
   if (vehicul.dataRovinieta) {
     remindereDeCreat.push({
       utilizator: utilizatorId, vehicul: vehiculId, tip: 'Rovinieta',
-      dataExpirare: vehicul.dataRovinieta, zileInainte: 7,
+      dataExpirare: vehicul.dataRovinieta, zileInainte: zilePrag,
       mesaj: `Rovinieta pentru ${vehicul.marca} ${vehicul.model} expira pe ${new Date(vehicul.dataRovinieta).toLocaleDateString('ro-RO')}`
     });
   }
@@ -120,7 +125,7 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
     if (!doc.dataExpirare) continue;
     remindereDeCreat.push({
       utilizator: utilizatorId, vehicul: vehiculId,
-      tip: doc.nume, dataExpirare: doc.dataExpirare, zileInainte: 30,
+      tip: doc.nume, dataExpirare: doc.dataExpirare, zileInainte: zilePrag,
       mesaj: `${doc.nume} pentru ${vehicul.marca} ${vehicul.model} expiră pe ${new Date(doc.dataExpirare).toLocaleDateString('ro-RO')}`
     });
   }

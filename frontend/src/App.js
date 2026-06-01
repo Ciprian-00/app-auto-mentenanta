@@ -12,6 +12,7 @@ import Vehicule from './pages/Vehicule';
 import DetaliiVehicul from './pages/DetaliiVehicul';
 import Scanner from './pages/Scanner';
 import Notificari from './pages/Notificari';
+import Profil from './pages/Profil';
 import AdaugaVehiculModal from './components/AdaugaVehiculModel';
 
 const FARA_NAV = ['/login', '/register'];
@@ -77,6 +78,11 @@ function AppContent() {
         <Route path="/notificari" element={
           <PrivateRoute>
             <Notificari onRemindereUpdate={handleRemindereUpdate} />
+          </PrivateRoute>
+        } />
+        <Route path="/profil" element={
+          <PrivateRoute>
+            <Profil />
           </PrivateRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />

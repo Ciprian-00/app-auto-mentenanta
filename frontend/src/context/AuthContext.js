@@ -38,8 +38,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Actualizează datele utilizatorului (după editarea profilului), păstrând token-ul
+  const updateUser = (dateNoi) => {
+    setUser(prev => {
+      const actualizat = { ...prev, ...dateNoi };
+      localStorage.setItem('user', JSON.stringify(actualizat));
+      return actualizat;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
