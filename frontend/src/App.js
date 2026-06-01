@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -14,13 +14,16 @@ import Scanner from './pages/Scanner';
 import Notificari from './pages/Notificari';
 import Profil from './pages/Profil';
 import AdaugaVehiculModal from './components/AdaugaVehiculModel';
+import AlegeMetoda from './components/AlegeMetoda';
 
 const FARA_NAV = ['/login', '/register'];
 
 function AppContent() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showChoice, setShowChoice] = useState(false);
   const [remindereUrgente, setRemindereUrgente] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -90,8 +93,16 @@ function AppContent() {
 
       {afiseazaNav && (
         <BottomNav
-          onAdaugaClick={() => setShowModal(true)}
+          onAdaugaClick={() => setShowChoice(true)}
           remindereUrgente={remindereUrgente}
+        />
+      )}
+
+      {showChoice && (
+        <AlegeMetoda
+          onScanner={() => { setShowChoice(false); navigate('/scanner'); }}
+          onManual={() => { setShowChoice(false); setShowModal(true); }}
+          onClose={() => setShowChoice(false)}
         />
       )}
 

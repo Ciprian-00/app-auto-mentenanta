@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import CarWatermark from '../components/CarWatermark';
+import AlegeMetoda from '../components/AlegeMetoda';
 
 const MARCI = ['Audi', 'BMW', 'Dacia', 'Ford', 'Mercedes-Benz', 'Renault', 'Skoda', 'Toyota', 'Volkswagen'];
 const ANI = Array.from({ length: 2027 - 1960 + 1 }, (_, i) => 2027 - i);
@@ -58,6 +59,7 @@ const Vehicule = () => {
   const [loadingMotorizari, setLoadingMotorizari] = useState(false);
 
   const [formVehicul, setFormVehicul] = useState(FORM_GOL);
+  const [showChoice, setShowChoice] = useState(false);
   const set = (key, val) => setFormVehicul(f => ({ ...f, [key]: val }));
 
   useEffect(() => {
@@ -214,7 +216,7 @@ const Vehicule = () => {
           </button>
           <span style={s.navTitlu}>Digital Garage</span>
         </div>
-        <button onClick={openAddModal} style={s.addBtn}>+ ADAUGĂ</button>
+        <button onClick={() => setShowChoice(true)} style={s.addBtn}>+ ADAUGĂ</button>
       </nav>
 
       <main style={s.main}>
@@ -223,7 +225,7 @@ const Vehicule = () => {
           <div style={s.golContainer}>
             <span style={{ fontSize: '3rem' }}>🚗</span>
             <p style={s.golText}>Nu ai adăugat nicio mașină.</p>
-            <button onClick={openAddModal} style={s.addBtn}>+ Adaugă prima mașină</button>
+            <button onClick={() => setShowChoice(true)} style={s.addBtn}>+ Adaugă prima mașină</button>
           </div>
         )}
 
@@ -303,6 +305,14 @@ const Vehicule = () => {
           );
         })}
       </main>
+
+      {showChoice && (
+        <AlegeMetoda
+          onScanner={() => { setShowChoice(false); navigate('/scanner'); }}
+          onManual={() => { setShowChoice(false); openAddModal(); }}
+          onClose={() => setShowChoice(false)}
+        />
+      )}
 
       {showModal && (
         <div style={s.overlay} onClick={() => setShowModal(false)}>
