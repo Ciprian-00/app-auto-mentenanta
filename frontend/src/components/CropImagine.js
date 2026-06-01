@@ -147,12 +147,12 @@ const CropImagine = ({ src, onConfirm, onCancel }) => {
 
 const st = {
   overlay: {
-    position: 'fixed', inset: 0, zIndex: 500, backgroundColor: '#0b0e14',
+    position: 'fixed', inset: 0, zIndex: 500, backgroundColor: 'var(--bg)',
     display: 'flex', flexDirection: 'column',
   },
   header: { padding: '18px 20px 10px', textAlign: 'center' },
-  titlu: { margin: 0, fontSize: '1rem', fontWeight: '800', color: '#fff', letterSpacing: '0.5px' },
-  sub: { margin: '4px 0 0', fontSize: '0.75rem', color: '#64748b' },
+  titlu: { margin: 0, fontSize: '1rem', fontWeight: '800', color: 'var(--text)', letterSpacing: '0.5px' },
+  sub: { margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--text-dim)' },
   wrap: {
     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden', userSelect: 'none', padding: '8px', minHeight: 0,
@@ -164,20 +164,20 @@ const st = {
   img: { maxWidth: '100%', maxHeight: '100%', display: 'block', pointerEvents: 'none' },
   box: {
     position: 'absolute',
-    border: '2px solid #00e5ff',
+    border: '2px solid var(--accent)',
     boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)',
     cursor: 'move', touchAction: 'none',
   },
   handle: {
     position: 'absolute', width: HANDLE, height: HANDLE,
-    borderRadius: '50%', backgroundColor: '#00e5ff',
-    border: '3px solid #0b0e14', touchAction: 'none',
+    borderRadius: '50%', backgroundColor: 'var(--accent)',
+    border: '3px solid var(--bg)', touchAction: 'none',
     boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
   },
   actiuni: {
     display: 'flex', gap: '12px',
     padding: '14px 20px calc(18px + env(safe-area-inset-bottom))',
-    borderTop: '1px solid rgba(255,255,255,0.08)', backgroundColor: '#0b0e14',
+    borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg)',
     flexShrink: 0,
   },
   btnAnuleaza: {
@@ -186,7 +186,7 @@ const st = {
     fontSize: '0.78rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer',
   },
   btnConfirma: {
-    flex: 2, backgroundColor: '#00e5ff', color: '#001f24', border: 'none',
+    flex: 2, backgroundColor: 'var(--accent)', color: 'var(--accent-ink)', border: 'none',
     padding: '14px', borderRadius: '10px',
     fontSize: '0.78rem', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer',
   },

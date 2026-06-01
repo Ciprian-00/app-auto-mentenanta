@@ -61,7 +61,7 @@ const dotUlei = (v) => {
 };
 
 const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [vehicule, setVehicule] = useState([]);
   const [remindere, setRemindere] = useState([]);
@@ -176,10 +176,10 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
           <p style={s.salut}>{getSalut()},</p>
           <h2 style={s.numeUser}>{user?.nume || 'Utilizator'}</h2>
         </div>
-        <button onClick={logout} style={s.logoutBtn} title="Deconectare">
+        <button onClick={() => navigate('/profil')} style={s.logoutBtn} title="Profil">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
           </svg>
         </button>
       </div>
@@ -202,11 +202,11 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
         {/* Statistici rapide */}
         <div style={s.statsCard}>
           {[
-            { label: 'MAȘINI', val: vehicule.length, color: '#00e5ff' },
+            { label: 'MAȘINI', val: vehicule.length, color: 'var(--accent)' },
             { label: 'ALERTE', val: remindereProblema.length, color: remindereProblema.length > 0 ? '#f59e0b' : '#10b981' },
             { label: 'LA ZI', val: remindereOk.length, color: '#10b981' },
           ].map((st, i) => (
-            <div key={st.label} style={{ ...s.statItem, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+            <div key={st.label} style={{ ...s.statItem, borderLeft: i > 0 ? '1px solid var(--border-soft)' : 'none' }}>
               <span style={{ ...s.statVal, color: st.color }}>{st.val}</span>
               <span style={s.statLbl}>{st.label}</span>
             </div>
@@ -292,7 +292,7 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
                             {dots.map((d, di) => (
                               <div key={di} style={s.dotItem}>
                                 <span style={{ ...s.dotCircle, backgroundColor: d.color, boxShadow: d.color !== '#10b981' ? `0 0 6px ${d.color}60` : 'none' }} />
-                                <span style={{ ...s.dotLabel, color: d.sub ? d.color : '#64748b' }}>{d.label}{d.sub ? ` ${d.sub}` : ''}</span>
+                                <span style={{ ...s.dotLabel, color: d.sub ? d.color : 'var(--text-dim)' }}>{d.label}{d.sub ? ` ${d.sub}` : ''}</span>
                               </div>
                             ))}
                           </div>
@@ -300,7 +300,7 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
                         {ulei && (
                           <div style={{ ...s.dotItem, marginTop: '6px' }}>
                             <span style={{ ...s.dotCircle, backgroundColor: ulei.color, boxShadow: ulei.color !== '#10b981' ? `0 0 6px ${ulei.color}60` : 'none' }} />
-                            <span style={{ ...s.dotLabel, color: ulei.sub ? ulei.color : '#64748b' }}>{ulei.text}</span>
+                            <span style={{ ...s.dotLabel, color: ulei.sub ? ulei.color : 'var(--text-dim)' }}>{ulei.text}</span>
                           </div>
                         )}
                       </div>
@@ -364,8 +364,8 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
                   <YAxis tick={{ fill: '#334155', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v === 0 ? '' : v.toLocaleString('ro-RO')} />
                   <Tooltip
                     contentStyle={{ backgroundColor: '#0d1017', border: '1px solid rgba(0,229,255,0.15)', borderRadius: '12px', fontSize: '13px', padding: '10px 14px' }}
-                    labelStyle={{ color: '#64748b', fontWeight: 700, marginBottom: '4px', fontSize: '11px' }}
-                    itemStyle={{ color: '#00e5ff', fontWeight: 800 }}
+                    labelStyle={{ color: 'var(--text-dim)', fontWeight: 700, marginBottom: '4px', fontSize: '11px' }}
+                    itemStyle={{ color: 'var(--accent)', fontWeight: 800 }}
                     formatter={v => v > 0 ? [`${v.toLocaleString('ro-RO')} lei`, ''] : null}
                     cursor={{ stroke: 'rgba(0,229,255,0.15)', strokeWidth: 1 }}
                   />
@@ -382,15 +382,15 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
 };
 
 const s = {
-  pagina: { backgroundColor: '#0b0e14', color: '#fff', minHeight: '100vh', fontFamily: '"Inter", sans-serif', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' },
-  loadingWrap: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0b0e14', gap: '14px' },
-  spinner: { width: '36px', height: '36px', border: '3px solid rgba(0,229,255,0.15)', borderTop: '3px solid #00e5ff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
-  loadingText: { color: '#00e5ff', fontSize: '11px', letterSpacing: '2px', fontWeight: '700', margin: 0 },
+  pagina: { backgroundColor: 'var(--bg)', color: 'var(--text)', minHeight: '100vh', fontFamily: '"Inter", sans-serif', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' },
+  loadingWrap: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', gap: '14px' },
+  spinner: { width: '36px', height: '36px', border: '3px solid rgba(0,229,255,0.15)', borderTop: '3px solid var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
+  loadingText: { color: 'var(--accent)', fontSize: '11px', letterSpacing: '2px', fontWeight: '700', margin: 0 },
 
-  header: { padding: '20px 18px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(11,14,20,0.95)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.04)' },
-  salut: { margin: '0 0 2px 0', color: '#475569', fontSize: '12px', fontWeight: '500' },
-  numeUser: { margin: 0, color: '#fff', fontSize: '22px', fontWeight: '800', letterSpacing: '-0.5px' },
-  logoutBtn: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '9px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  header: { padding: '20px 18px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'var(--nav-bg)', backdropFilter: 'blur(16px)', borderBottom: '1px solid var(--border-soft)' },
+  salut: { margin: '0 0 2px 0', color: 'var(--text-faint)', fontSize: '12px', fontWeight: '500' },
+  numeUser: { margin: 0, color: 'var(--text)', fontSize: '22px', fontWeight: '800', letterSpacing: '-0.5px' },
+  logoutBtn: { background: 'var(--border-soft)', border: '1px solid var(--border)', borderRadius: '10px', padding: '9px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   main: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '18px' },
 
@@ -399,35 +399,35 @@ const s = {
   bannerIcon: { fontSize: '1.4rem', flexShrink: 0 },
   bannerText: { flex: 1 },
   bannerTitlu: { margin: '0 0 2px 0', fontWeight: '800', fontSize: '14px' },
-  bannerSub: { margin: 0, color: '#64748b', fontSize: '12px' },
+  bannerSub: { margin: 0, color: 'var(--text-dim)', fontSize: '12px' },
   bannerBtn: { background: 'none', border: '1px solid', borderRadius: '8px', padding: '6px 12px', fontSize: '10px', fontWeight: '800', letterSpacing: '0.5px', cursor: 'pointer', flexShrink: 0, fontFamily: '"Inter", sans-serif' },
 
-  statsCard: { backgroundColor: '#12151e', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', display: 'flex', overflow: 'hidden' },
+  statsCard: { backgroundColor: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '16px', display: 'flex', overflow: 'hidden' },
   statItem: { flex: 1, padding: '18px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' },
   statVal: { fontSize: '28px', fontWeight: '900', lineHeight: 1, letterSpacing: '-1px' },
-  statLbl: { fontSize: '9px', color: '#475569', fontWeight: '800', letterSpacing: '1.5px' },
+  statLbl: { fontSize: '9px', color: 'var(--text-faint)', fontWeight: '800', letterSpacing: '1.5px' },
 
   sectiune: {},
   sectionHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
-  sectionTitle: { margin: 0, fontSize: '9px', fontWeight: '800', color: '#475569', letterSpacing: '2px' },
-  veziBtn: { background: 'none', border: 'none', color: '#00e5ff', fontSize: '9px', fontWeight: '800', letterSpacing: '0.5px', cursor: 'pointer' },
+  sectionTitle: { margin: 0, fontSize: '9px', fontWeight: '800', color: 'var(--text-faint)', letterSpacing: '2px' },
+  veziBtn: { background: 'none', border: 'none', color: 'var(--accent)', fontSize: '9px', fontWeight: '800', letterSpacing: '0.5px', cursor: 'pointer' },
 
-  listCard: { backgroundColor: '#12151e', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden' },
-  listDiv: { height: '1px', backgroundColor: 'rgba(255,255,255,0.04)', margin: '0 16px' },
+  listCard: { backgroundColor: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '16px', overflow: 'hidden' },
+  listDiv: { height: '1px', backgroundColor: 'var(--border-soft)', margin: '0 16px' },
   listRow: { display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', cursor: 'pointer' },
   listDot: { width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0 },
   listRowBody: { flex: 1, minWidth: 0 },
-  listTip: { margin: '0 0 2px 0', fontWeight: '700', fontSize: '14px', color: '#f1f5f9' },
-  listVehicul: { margin: 0, fontSize: '11px', color: '#475569', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  listTip: { margin: '0 0 2px 0', fontWeight: '700', fontSize: '14px', color: 'var(--text-strong)' },
+  listVehicul: { margin: 0, fontSize: '11px', color: 'var(--text-faint)', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   listTag: { fontSize: '9px', fontWeight: '800', padding: '4px 9px', borderRadius: '20px', letterSpacing: '0.5px', flexShrink: 0, whiteSpace: 'nowrap' },
 
   vehiculRow: { display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', cursor: 'pointer', position: 'relative' },
   vehiculAccent: { width: '3px', height: '100%', position: 'absolute', left: 0, top: 0, bottom: 0 },
   vehiculBody: { flex: 1, minWidth: 0, paddingLeft: '4px' },
   vehiculTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '3px' },
-  vehiculNume: { margin: 0, fontWeight: '700', fontSize: '15px', color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  vehiculSub: { margin: '0 0 8px 0', fontSize: '11px', color: '#475569', fontWeight: '500' },
-  placuta: { display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden', flexShrink: 0 },
+  vehiculNume: { margin: 0, fontWeight: '700', fontSize: '15px', color: 'var(--text-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  vehiculSub: { margin: '0 0 8px 0', fontSize: '11px', color: 'var(--text-faint)', fontWeight: '500' },
+  placuta: { display: 'inline-flex', alignItems: 'center', border: '1.5px solid var(--border-strong)', borderRadius: '4px', overflow: 'hidden', flexShrink: 0 },
   placutaRo: { background: '#003399', color: '#fff', fontSize: '7px', fontWeight: '900', padding: '2px 4px' },
   placutaNr: { background: '#fff', color: '#000', fontSize: '10px', fontWeight: '900', padding: '2px 7px', letterSpacing: '1.5px' },
   dotsRow: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '1px' },
@@ -435,23 +435,23 @@ const s = {
   dotCircle: { width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0 },
   dotLabel: { fontSize: '10px', fontWeight: '600', letterSpacing: '0.2px' },
 
-  golCard: { backgroundColor: '#12151e', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '36px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textAlign: 'center' },
-  golTitlu: { margin: 0, fontSize: '16px', fontWeight: '800', color: '#f1f5f9' },
-  golSub: { margin: 0, fontSize: '13px', color: '#475569', lineHeight: '1.5' },
-  golBtn: { marginTop: '8px', backgroundColor: '#00e5ff', border: 'none', color: '#001f24', borderRadius: '10px', padding: '12px 24px', fontSize: '11px', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', fontFamily: '"Inter", sans-serif' },
-  maiMulteBtn: { display: 'block', width: '100%', background: 'none', border: 'none', color: '#475569', padding: '13px 16px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textAlign: 'center', fontFamily: '"Inter", sans-serif' },
+  golCard: { backgroundColor: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '16px', padding: '36px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textAlign: 'center' },
+  golTitlu: { margin: 0, fontSize: '16px', fontWeight: '800', color: 'var(--text-strong)' },
+  golSub: { margin: 0, fontSize: '13px', color: 'var(--text-faint)', lineHeight: '1.5' },
+  golBtn: { marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--accent-ink)', borderRadius: '10px', padding: '12px 24px', fontSize: '11px', fontWeight: '800', letterSpacing: '1px', cursor: 'pointer', fontFamily: '"Inter", sans-serif' },
+  maiMulteBtn: { display: 'block', width: '100%', background: 'none', border: 'none', color: 'var(--text-faint)', padding: '13px 16px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textAlign: 'center', fontFamily: '"Inter", sans-serif' },
 
-  graficCard: { backgroundColor: '#12151e', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', padding: '16px 16px 10px' },
+  graficCard: { backgroundColor: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: '16px', overflow: 'hidden', padding: '16px 16px 10px' },
   graficHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' },
-  graficTotal: { margin: 0, fontSize: '22px', fontWeight: '900', color: '#00e5ff', letterSpacing: '-0.5px' },
-  graficSub: { margin: '2px 0 0', fontSize: '10px', color: '#475569', fontWeight: '600' },
-  graficNrIntrari: { margin: 0, fontSize: '11px', color: '#334155', fontWeight: '700' },
+  graficTotal: { margin: 0, fontSize: '22px', fontWeight: '900', color: 'var(--accent)', letterSpacing: '-0.5px' },
+  graficSub: { margin: '2px 0 0', fontSize: '10px', color: 'var(--text-faint)', fontWeight: '600' },
+  graficNrIntrari: { margin: 0, fontSize: '11px', color: 'var(--text-fainter)', fontWeight: '700' },
   intervalRow: { display: 'flex', gap: '4px' },
-  intervalBtn: { background: 'none', border: 'none', outline: 'none', color: '#334155', borderRadius: '8px', padding: '4px 10px', fontSize: '10px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px', fontFamily: '"Inter", sans-serif' },
-  intervalBtnActiv: { background: 'rgba(0,229,255,0.12)', color: '#00e5ff' },
+  intervalBtn: { background: 'none', border: 'none', outline: 'none', color: 'var(--text-fainter)', borderRadius: '8px', padding: '4px 10px', fontSize: '10px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.5px', fontFamily: '"Inter", sans-serif' },
+  intervalBtnActiv: { background: 'rgba(0,229,255,0.12)', color: 'var(--accent)' },
   categorieRow: { display: 'flex', gap: '6px', marginBottom: '12px' },
-  categorieBtn: { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#475569', borderRadius: '20px', padding: '5px 12px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.3px', fontFamily: '"Inter", sans-serif', outline: 'none' },
-  categorieBtnActiv: { background: 'rgba(0,229,255,0.12)', border: '1px solid rgba(0,229,255,0.3)', color: '#00e5ff' },
+  categorieBtn: { background: 'var(--border-soft)', border: '1px solid var(--border)', color: 'var(--text-faint)', borderRadius: '20px', padding: '5px 12px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.3px', fontFamily: '"Inter", sans-serif', outline: 'none' },
+  categorieBtnActiv: { background: 'rgba(0,229,255,0.12)', border: '1px solid rgba(0,229,255,0.3)', color: 'var(--accent)' },
 };
 
 export default Dashboard;

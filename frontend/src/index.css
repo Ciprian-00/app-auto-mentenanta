@@ -8,6 +8,61 @@
   padding: 0;
 }
 
+/* ============================================================
+   TEME (dark / light) — variabile de culoare
+   Schimbate prin atributul data-theme pe <html> (ThemeContext)
+   ============================================================ */
+
+/* Tema întunecată (implicită) */
+:root, [data-theme="dark"] {
+  --bg: #0b0e14;
+  --surface: #13161f;
+  --surface-2: #12151e;
+  --surface-3: #1a1d27;
+  --input-bg: #0b0e14;
+  --text: #ffffff;
+  --text-strong: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-faint: #475569;
+  --text-fainter: #334155;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-soft: rgba(255, 255, 255, 0.04);
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --accent: #00e5ff;
+  --accent-ink: #001f24;
+  --accent-soft: rgba(0, 229, 255, 0.08);
+  --nav-bg: rgba(11, 14, 20, 0.9);
+  --hero-grad: linear-gradient(160deg, #0d1626 0%, #080b12 100%);
+  --watermark: rgba(255, 255, 255, 0.03);
+  --inset: rgba(255, 255, 255, 0.03);
+}
+
+/* Tema luminoasă */
+[data-theme="light"] {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #f1f5f9;
+  --input-bg: #f8fafc;
+  --text: #0f172a;
+  --text-strong: #1e293b;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+  --text-faint: #94a3b8;
+  --text-fainter: #cbd5e1;
+  --border: rgba(0, 0, 0, 0.1);
+  --border-soft: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --accent: #0891b2;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(8, 145, 178, 0.1);
+  --nav-bg: rgba(255, 255, 255, 0.9);
+  --hero-grad: linear-gradient(160deg, #e4ebf3 0%, #d4dde9 100%);
+  --watermark: rgba(15, 23, 42, 0.06);
+  --inset: rgba(0, 0, 0, 0.03);
+}
+
 html {
   /* Previne bounce-ul paginii pe iOS */
   overscroll-behavior: none;
@@ -17,10 +72,11 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  background-color: #0b0e14;
-  color: #ffffff;
+  background-color: var(--bg);
+  color: var(--text);
   min-height: 100%;
   min-height: 100dvh;
+  transition: background-color 0.25s ease, color 0.25s ease;
 
   /* Previne bounce/pull-to-refresh accidental */
   overscroll-behavior-y: contain;
@@ -52,7 +108,10 @@ textarea:focus {
 }
 
 /* Focus vizibil doar la navigare cu tastatura */
-button:focus-visible,
+button:focus-visible {
+  outline: none;
+}
+
 input:focus-visible,
 select:focus-visible {
   outline: 2px solid #00e5ff;
