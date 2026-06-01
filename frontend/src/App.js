@@ -15,6 +15,7 @@ import Notificari from './pages/Notificari';
 import Profil from './pages/Profil';
 import AdaugaVehiculModal from './components/AdaugaVehiculModel';
 import AlegeMetoda from './components/AlegeMetoda';
+import { Analytics } from '@vercel/analytics/react';
 
 const FARA_NAV = ['/login', '/register'];
 
@@ -122,6 +123,7 @@ function App() {
       <BrowserRouter>
         <AppContent />
       </BrowserRouter>
+      <Analytics />
     </AuthProvider>
   );
 }
