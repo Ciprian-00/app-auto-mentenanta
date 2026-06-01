@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-mentenanta-v1';
+const CACHE_NAME = 'auto-mentenanta-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -76,7 +76,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache first, fallback to network
+  // Navigare (pagina HTML): network-first, ca să primești mereu ultima versiune
+  // după un deploy nou. Cache-ul rămâne doar pentru offline.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const cloned = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', cloned));
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Restul (JS/CSS/imagini — au hash în nume, deci sigure la cache): cache-first
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
@@ -86,11 +101,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       });
-    }).catch(() => {
-      // Offline fallback: return cached index.html for navigation requests
-      if (event.request.mode === 'navigate') {
-        return caches.match('/index.html');
-      }
     })
   );
 });
