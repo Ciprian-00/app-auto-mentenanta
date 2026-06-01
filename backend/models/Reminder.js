@@ -18,7 +18,9 @@ const reminderSchema = new mongoose.Schema({
   dataExpirare: { type: Date, required: true },
   zileInainte: { type: Number, default: 30 },
   dismissed: { type: Boolean, default: false },
-  mesaj: { type: String }
+  mesaj: { type: String },
+  // Data ultimei notificari push trimise (ca sa nu trimitem de mai multe ori/zi)
+  notificatLa: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Reminder', reminderSchema);

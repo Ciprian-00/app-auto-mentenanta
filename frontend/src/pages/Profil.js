@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { aboneazaPush, dezaboneazaPush, testPush, verificaAcum, pushSuportat } from '../services/push';
 import api from '../services/api';
 
 const EMAIL_SUPORT = 'ciprian.ciobanu@student.usv.ro';
@@ -42,6 +43,8 @@ const Profil = () => {
   const [formCont, setFormCont] = useState({ nume: '', email: '', telefon: '' });
   const [formParola, setFormParola] = useState({ parolaCurenta: '', parolaNoua: '', confirma: '' });
   const [prag, setPrag] = useState(30);
+  const [notificari, setNotificari] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
   const [savingCont, setSavingCont] = useState(false);
   const [savingParola, setSavingParola] = useState(false);
   const [infoModal, setInfoModal] = useState(null);
@@ -55,6 +58,7 @@ const Profil = () => {
         setProfil(resP.data);
         setFormCont({ nume: resP.data.nume || '', email: resP.data.email || '', telefon: resP.data.telefon || '' });
         setPrag(resP.data.setari?.zileInainteAlerta || 30);
+        setNotificari(resP.data.setari?.notificariActive || false);
         setNrMasini(resV.data.length);
       } catch {
         toast.error('Eroare la încărcarea profilului');
@@ -128,6 +132,47 @@ const Profil = () => {
   const deschideEditParola = () => {
     setFormParola({ parolaCurenta: '', parolaNoua: '', confirma: '' });
     setEditParola(true);
+  };
+
+  // Activează/dezactivează notificările push (abonare/dezabonare la nivel de dispozitiv)
+  const handleToggleNotificari = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (!notificari) {
+        await aboneazaPush();
+        setNotificari(true);
+        toast.success('Notificări activate');
+      } else {
+        await dezaboneazaPush();
+        setNotificari(false);
+        toast.success('Notificări dezactivate');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.mesaj || err.message || 'Eroare la notificări');
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const handleTestNotificare = async () => {
+    try {
+      await testPush();
+      toast.success('Notificare de test trimisă!');
+    } catch (err) {
+      toast.error(err.response?.data?.mesaj || 'Eroare la trimiterea testului');
+    }
+  };
+
+  // TEMPORAR (demo licență): declanșează manual verificarea expirărilor
+  const handleVerificaAcum = async () => {
+    try {
+      const { data } = await verificaAcum();
+      if (data.trimise > 0) toast.success(`${data.trimise} notificare(i) trimise pentru documente care expiră`);
+      else toast.info('Niciun document de notificat acum');
+    } catch (err) {
+      toast.error(err.response?.data?.mesaj || 'Eroare la verificare');
+    }
   };
 
   const handleLogout = () => {
@@ -225,6 +270,44 @@ const Profil = () => {
               ))}
             </div>
             <p style={s.hint}>Se aplică pentru ITP, RCA, Rovinietă și documentele tale.</p>
+          </div>
+        </section>
+
+        {/* Notificări push */}
+        <section style={s.sectiune}>
+          <div style={s.sectLabel}>NOTIFICĂRI</div>
+          <div style={s.card}>
+            <div style={s.dataRow}>
+              <span style={s.rowLabel}>Notificări push</span>
+              <button
+                onClick={handleToggleNotificari}
+                disabled={pushBusy || !pushSuportat()}
+                style={{ ...s.switch, ...(notificari ? s.switchOn : {}), opacity: pushSuportat() ? 1 : 0.5 }}
+                aria-label="Comută notificările"
+              >
+                <span style={{ ...s.switchKnob, ...(notificari ? s.switchKnobOn : {}) }} />
+              </button>
+            </div>
+            <p style={s.hint}>
+              {pushSuportat()
+                ? 'Primești o notificare pe telefon când expiră un document, chiar dacă aplicația e închisă.'
+                : 'Notificările push nu sunt suportate pe acest browser. Pe iPhone, adaugă aplicația pe ecranul principal.'}
+            </p>
+            {notificari && (
+              <>
+                <div style={s.divider} />
+                <button onClick={handleTestNotificare} style={s.linkRow}>
+                  <span style={s.linkLabel}>🔔 Trimite o notificare de test</span>
+                  <span style={s.chevron}>›</span>
+                </button>
+                {/* TEMPORAR pentru demo licență — de eliminat la final */}
+                <div style={s.divider} />
+                <button onClick={handleVerificaAcum} style={s.linkRow}>
+                  <span style={s.linkLabel}>🔄 Verifică expirările acum <span style={s.demoTag}>demo</span></span>
+                  <span style={s.chevron}>›</span>
+                </button>
+              </>
+            )}
           </div>
         </section>
 
@@ -429,6 +512,11 @@ const s = {
   segBtn: { flex: 1, minWidth: 'fit-content', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-dim)', borderRadius: '9px', padding: '9px 10px', fontSize: '0.75rem', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif', whiteSpace: 'nowrap' },
   segBtnActiv: { background: 'var(--accent-soft)', border: '1px solid var(--accent)', color: 'var(--accent)' },
   hint: { margin: 0, fontSize: '0.72rem', color: 'var(--text-faint)', lineHeight: 1.4 },
+  switch: { width: '46px', height: '26px', borderRadius: '14px', background: 'var(--surface-3)', border: '1px solid var(--border)', position: 'relative', cursor: 'pointer', padding: 0, flexShrink: 0, transition: 'background 0.2s' },
+  switchOn: { background: 'var(--accent)', border: '1px solid var(--accent)' },
+  switchKnob: { position: 'absolute', top: '2px', left: '2px', width: '20px', height: '20px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'transform 0.2s' },
+  switchKnobOn: { transform: 'translateX(20px)' },
+  demoTag: { fontSize: '0.55rem', fontWeight: '800', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '1px 5px', marginLeft: '6px', letterSpacing: '0.5px', verticalAlign: 'middle' },
 
   dataRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' },
   dataLabel: { fontSize: '0.8rem', color: 'var(--text-dim)', flexShrink: 0 },

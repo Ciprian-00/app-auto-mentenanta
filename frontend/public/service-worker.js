@@ -32,6 +32,37 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Push: afișează notificarea trimisă de server (merge și cu aplicația închisă)
+self.addEventListener('push', (event) => {
+  let date = { titlu: 'Auto-Mentenanță', corp: 'Ai o notificare nouă', url: '/notificari' };
+  try {
+    if (event.data) date = { ...date, ...event.data.json() };
+  } catch (e) { /* payload simplu, ignorăm */ }
+
+  event.waitUntil(
+    self.registration.showNotification(date.titlu, {
+      body: date.corp,
+      icon: '/icons/icon-192-removeb.png',
+      badge: '/icons/icon-192-removeb.png',
+      data: { url: date.url || '/notificari' },
+      vibrate: [100, 50, 100],
+    })
+  );
+});
+
+// Click pe notificare: deschide aplicația la pagina relevantă
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/notificari';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((lista) => {
+      const existent = lista.find((c) => c.url.includes(url));
+      if (existent) return existent.focus();
+      return clients.openWindow(url);
+    })
+  );
+});
+
 // Fetch: network-first for API, cache-first for static
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
