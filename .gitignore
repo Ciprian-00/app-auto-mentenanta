@@ -5,3 +5,6 @@ uploads/
 .DS_Store
 npm-debug.log*
 yarn-debug.log*
+
+# Date OCR Tesseract (se descarca automat la rulare)
+*.traineddata
