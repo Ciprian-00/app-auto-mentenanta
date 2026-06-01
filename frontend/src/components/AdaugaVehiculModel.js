@@ -111,7 +111,6 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
       <div style={s.modal} onClick={e => e.stopPropagation()}>
 
         <div style={s.stickyTop}>
-          <div style={s.handle} />
           <div style={s.header}>
             <h3 style={s.titlu}>ADAUGĂ MAȘINĂ</h3>
             <button onClick={onClose} style={s.closeBtn}>✕</button>
@@ -230,10 +229,9 @@ const AdaugaVehiculModal = ({ onClose, onSuccess }) => {
 };
 
 const s = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 500 },
-  modal: { background: 'linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%)', width: '100%', maxWidth: '600px', padding: '12px 20px calc(24px + env(safe-area-inset-bottom))', borderRadius: '20px 20px 0 0', border: '1px solid rgba(0,229,255,0.15)', borderBottom: 'none', maxHeight: 'calc(90vh - env(safe-area-inset-top))', overflowY: 'auto' },
-  stickyTop: { position: 'sticky', top: 0, zIndex: 1, background: 'linear-gradient(180deg, var(--surface) 80%, transparent 100%)', paddingTop: '4px', paddingBottom: '4px', marginBottom: '8px' },
-  handle: { width: '40px', height: '4px', background: 'rgba(255,255,255,0.15)', borderRadius: '2px', margin: '0 auto 14px' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500, padding: 'calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom))' },
+  modal: { background: 'linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%)', width: '100%', maxWidth: '500px', padding: '24px', borderRadius: '15px', border: '1px solid rgba(0,229,255,0.25)', maxHeight: 'calc(85vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))', overflowY: 'auto' },
+  stickyTop: { position: 'sticky', top: 0, zIndex: 1, background: 'linear-gradient(180deg, var(--surface) 80%, transparent 100%)', paddingBottom: '12px', marginBottom: '4px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' },
   titlu: { margin: 0, fontSize: '0.8rem', fontWeight: '800', color: 'var(--accent)', letterSpacing: '1.5px', fontFamily: '"Inter", sans-serif' },
   closeBtn: { background: 'var(--border)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: '14px', borderRadius: '8px', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
