@@ -18,14 +18,15 @@ const getSalut = () => {
   return 'Bună seara';
 };
 
-const statusDoc = (data) => {
+// Pragul (câte zile înainte e considerat „urgent") vine din setările utilizatorului
+const statusDoc = (data, prag) => {
   if (!data) return null;
   const zile = zileRamase(data);
-  return { zile, color: zile < 0 ? '#ff4d4d' : zile <= 30 ? '#f59e0b' : '#10b981' };
+  return { zile, color: zile < 0 ? '#ff4d4d' : zile <= prag ? '#f59e0b' : '#10b981' };
 };
 
 // Bulinele cu documentele (ITP/RCA/Rovinietă + custom) afișate pe cardul mașinii
-const getDocDots = (v) => {
+const getDocDots = (v, prag) => {
   const docs = [
     { label: 'ITP', data: v.dataITP },
     { label: 'RCA', data: v.dataRCA },
@@ -34,8 +35,8 @@ const getDocDots = (v) => {
   ].filter(d => d.data);
 
   return docs.map(d => {
-    const st = statusDoc(d.data);
-    const sub = st.zile < 0 ? 'EXPIRAT' : st.zile <= 30 ? `${st.zile}z` : null;
+    const st = statusDoc(d.data, prag);
+    const sub = st.zile < 0 ? 'EXPIRAT' : st.zile <= prag ? `${st.zile}z` : null;
     return { label: d.label, color: st.color, sub };
   });
 };
@@ -62,6 +63,7 @@ const dotUlei = (v) => {
 
 const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
   const { user } = useAuth();
+  const prag = user?.setari?.zileInainteAlerta || 30;
   const navigate = useNavigate();
   const [vehicule, setVehicule] = useState([]);
   const [remindere, setRemindere] = useState([]);
@@ -266,7 +268,7 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
           ) : (
             <div style={s.listCard}>
               {vehicule.slice(0, 3).map((v, i) => {
-                const dots = getDocDots(v);
+                const dots = getDocDots(v, prag);
                 const ulei = dotUlei(v);
                 const accentColor = dots.some(d => d.color === '#ff4d4d') ? '#ff4d4d'
                   : dots.some(d => d.color === '#f59e0b') ? '#f59e0b'

@@ -59,6 +59,7 @@ const Profil = () => {
         setFormCont({ nume: resP.data.nume || '', email: resP.data.email || '', telefon: resP.data.telefon || '' });
         setPrag(resP.data.setari?.zileInainteAlerta || 30);
         setNotificari(resP.data.setari?.notificariActive || false);
+        if (resP.data.setari) updateUser({ setari: resP.data.setari }); // sincronizează pragul în context
         setNrMasini(resV.data.length);
       } catch {
         toast.error('Eroare la încărcarea profilului');
@@ -67,6 +68,7 @@ const Profil = () => {
       }
     };
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setCont = (key, val) => setFormCont(f => ({ ...f, [key]: val }));
@@ -115,7 +117,8 @@ const Profil = () => {
     const vechi = prag;
     setPrag(zile);
     try {
-      await api.put('/auth/setari', { zileInainteAlerta: zile });
+      const { data } = await api.put('/auth/setari', { zileInainteAlerta: zile });
+      updateUser({ setari: data.setari }); // propagă pragul în tot frontend-ul
       toast.success(`Vei fi avertizat cu ${zile} zile înainte`);
     } catch (err) {
       setPrag(vechi);

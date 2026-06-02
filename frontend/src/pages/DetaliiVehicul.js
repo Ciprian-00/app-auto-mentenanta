@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import CarWatermark from '../components/CarWatermark';
 
@@ -20,12 +21,13 @@ const toDateInput = (data) => {
   try { return new Date(data).toISOString().split('T')[0]; } catch { return ''; }
 };
 
-// Status pentru documente (ITP/RCA/Rovinietă) pe baza datei de expirare
-const statusDoc = (data) => {
+// Status pentru documente (ITP/RCA/Rovinietă) pe baza datei de expirare.
+// Pragul (câte zile înainte e considerat „urgent") vine din setările utilizatorului.
+const statusDoc = (data, prag) => {
   if (!data) return { culoare: 'var(--text-faint)', text: '—' };
   const zile = zileRamase(data);
   if (zile < 0) return { culoare: '#ff4d4d', text: 'Expirat' };
-  if (zile <= 30) return { culoare: '#fbbf24', text: `${zile}z` };
+  if (zile <= prag) return { culoare: '#fbbf24', text: `${zile}z` };
   return { culoare: '#22d3a5', text: `${zile}z` };
 };
 
@@ -75,6 +77,8 @@ const RandStatus = ({ icon, label, subtitlu, status, gol, onClick }) => (
 const DetaliiVehicul = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const prag = user?.setari?.zileInainteAlerta || 30;
 
   const [vehicul, setVehicul] = useState(null);
   const [recomandari, setRecomandari] = useState([]);
@@ -453,7 +457,7 @@ const DetaliiVehicul = () => {
               { label: 'RCA', data: vehicul.dataRCA },
               { label: 'Rovinietă', data: vehicul.dataRovinieta },
             ].map((doc, i) => {
-              const st = statusDoc(doc.data);
+              const st = statusDoc(doc.data, prag);
               return (
                 <div key={doc.label}>
                   {i > 0 && <div style={s.rowDiv} />}
@@ -468,7 +472,7 @@ const DetaliiVehicul = () => {
               );
             })}
             {(vehicul.documenteCustom || []).map(doc => {
-              const st = statusDoc(doc.dataExpirare);
+              const st = statusDoc(doc.dataExpirare, prag);
               return (
                 <div key={doc._id}>
                   <div style={s.rowDiv} />

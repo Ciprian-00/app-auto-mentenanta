@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import CarWatermark from '../components/CarWatermark';
 import AlegeMetoda from '../components/AlegeMetoda';
@@ -24,8 +25,9 @@ const formateazaData = (data) => {
   return new Date(data).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-// Calculează starea generală a mașinii din documentul care expiră cel mai repede
-const getStatusMasina = (vehicul) => {
+// Calculează starea generală a mașinii din documentul care expiră cel mai repede.
+// Pragul (câte zile înainte e considerat „urgent") vine din setările utilizatorului.
+const getStatusMasina = (vehicul, prag) => {
   const acte = [
     { nume: 'ITP', data: vehicul.dataITP },
     { nume: 'RCA', data: vehicul.dataRCA },
@@ -38,13 +40,15 @@ const getStatusMasina = (vehicul) => {
   for (const act of acte) {
     const zile = zileRamase(act.data);
     if (zile < 0) return { textBadge: 'ACȚIUNE NECESARĂ', mesajStare: `${act.nume} EXPIRAT!`, culoare: '#ff4d4d' };
-    if (zile <= 30) return { textBadge: 'NECESITĂ ATENȚIE', mesajStare: `${act.nume} expiră în ${zile} zile`, culoare: '#fbbf24' };
+    if (zile <= prag) return { textBadge: 'NECESITĂ ATENȚIE', mesajStare: `${act.nume} expiră în ${zile} zile`, culoare: '#fbbf24' };
   }
   return { textBadge: 'DOCUMENTE OK', mesajStare: 'OPTIM', culoare: '#22d3a5' };
 };
 
 const Vehicule = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const prag = user?.setari?.zileInainteAlerta || 30;
   const [vehicule, setVehicule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -201,7 +205,7 @@ const Vehicule = () => {
         )}
 
         {vehicule.map(v => {
-          const status = getStatusMasina(v);
+          const status = getStatusMasina(v, prag);
           return (
             <div key={v._id} style={s.card} onClick={() => navigate(`/vehicule/${v._id}`)}>
 
@@ -262,7 +266,7 @@ const Vehicule = () => {
                     { label: 'ROVINIETĂ', data: v.dataRovinieta },
                   ].map(({ label, data }) => {
                     const zile = data ? zileRamase(data) : null;
-                    const culoare = zile === null ? 'var(--text-dim)' : zile < 0 ? '#ff4d4d' : zile <= 30 ? '#fbbf24' : 'var(--text-muted)';
+                    const culoare = zile === null ? 'var(--text-dim)' : zile < 0 ? '#ff4d4d' : zile <= prag ? '#fbbf24' : 'var(--text-muted)';
                     return (
                       <div key={label} style={s.docItem}>
                         <span style={s.docLabel}>{label}</span>

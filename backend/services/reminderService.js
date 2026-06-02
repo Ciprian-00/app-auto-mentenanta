@@ -138,6 +138,7 @@ const genereazaRemindere = async (vehiculId, utilizatorId) => {
     } else {
       existent.dataExpirare = reminder.dataExpirare;
       existent.mesaj = reminder.mesaj;
+      existent.zileInainte = reminder.zileInainte; // aplică pragul curent din setări
       existent.dismissed = false;
       await existent.save();
     }
