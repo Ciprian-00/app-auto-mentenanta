@@ -32,6 +32,13 @@ app.get('/', (req, res) => {
   res.json({ message: 'Auto-Mentenanta API functioneaza' });
 });
 
+// Health-check pentru keep-alive: răspunde instant, fără să atingă baza de date.
+// Un serviciu de monitorizare (UptimeRobot) îl apelează periodic ca serverul
+// gratuit Render să nu intre în repaus (evită cold-start-ul).
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server pornit pe portul ${PORT}`);
