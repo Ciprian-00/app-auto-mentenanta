@@ -19,7 +19,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/vehicles', require('./routes/vehicleRoutes'));
 app.use('/api/reminders', require('./routes/reminderRoutes'));
-app.use('/api/ocr', require('./routes/ocrRoutes'));
 app.use('/api/specs', require('./routes/specRoutes'));
 app.use('/api/maintenance', require('./routes/maintenanceRoutes'));
 app.use('/api/push', require('./routes/pushRoutes'));

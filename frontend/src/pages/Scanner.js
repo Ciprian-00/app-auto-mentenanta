@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import CropImagine from '../components/CropImagine';
+import { scaneaza } from '../services/ocrLocal';
 
 const MARCI = ['Audi', 'BMW', 'Dacia', 'Ford', 'Mercedes-Benz', 'Renault', 'Skoda', 'Toyota', 'Volkswagen'];
 const ANI = Array.from({ length: 2027 - 1960 }, (_, i) => 2027 - i);
@@ -69,6 +70,7 @@ const Scanner = () => {
   const [loadingModele, setLoadingModele] = useState(false);
   const [loadingMotorizari, setLoadingMotorizari] = useState(false);
   const [salvand, setSalvand] = useState(false);
+  const [progres, setProgres] = useState(0); // 0..100 pentru bara OCR
 
   const setF = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -145,11 +147,11 @@ const Scanner = () => {
 
   const handleAnalizeaza = async () => {
     setEtapa('loading');
+    setProgres(0);
     try {
-      const fd = new FormData();
-      fd.append('imagine', imagine);
-      const { data } = await api.post('/ocr/proceseaza', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      const d = data.dateExtrase || {};
+      // OCR rulează pe dispozitiv (browser), nu pe server → rapid și fără să-l încarce
+      const { dateExtrase } = await scaneaza(imagine, p => setProgres(Math.round(p * 100)));
+      const d = dateExtrase || {};
 
       ocrRef.current = d;
       setOcrExtra({ combustibil: d.combustibil || null, cilindree: d.cilindree || null });
@@ -167,7 +169,7 @@ const Scanner = () => {
 
       setEtapa('form');
     } catch (err) {
-      toast.error(err.response?.data?.mesaj || 'Eroare la procesare imagine');
+      toast.error('Eroare la procesarea imaginii. Încearcă din nou.');
       setEtapa('upload');
     }
   };
@@ -213,6 +215,7 @@ const Scanner = () => {
     setCropSrc(null);
     setForm(FORM_GOL);
     setOcrExtra(null);
+    setProgres(0);
     ocrRef.current = null;
     setModele([]);
     setMotorizari([]);
@@ -311,7 +314,14 @@ const Scanner = () => {
             {preview && <img src={preview} alt="" style={{ ...s.previewImg, opacity: 0.35, borderRadius: '10px', marginBottom: '16px' }} />}
             <div style={s.spinner} />
             <p style={s.loadingTitlu}>Procesare OCR</p>
-            <p style={s.loadingText}>Analizez documentul pentru a extrage datele... poate dura până la un minut</p>
+            <div style={s.progresBara}>
+              <div style={{ ...s.progresUmplut, width: `${progres}%` }} />
+            </div>
+            <p style={s.loadingText}>
+              {progres === 0
+                ? 'Pregătesc recunoașterea (prima dată se descarcă datele de limbă)...'
+                : `Extrag datele din document... ${progres}%`}
+            </p>
           </div>
         )}
 
@@ -462,6 +472,8 @@ const s = {
   loadingBox: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '3rem 2rem', backgroundColor: 'var(--surface)', borderRadius: '14px', border: '1px solid var(--border-soft)' },
   spinner: { width: '40px', height: '40px', border: '3px solid rgba(0,229,255,0.15)', borderTop: '3px solid var(--accent)', borderRadius: '50%', animation: 'spin 0.9s linear infinite' },
   loadingTitlu: { color: 'var(--text)', fontWeight: '800', fontSize: '0.9rem', margin: 0, letterSpacing: '1px' },
+  progresBara: { width: '100%', maxWidth: '260px', height: '6px', backgroundColor: 'rgba(0,229,255,0.12)', borderRadius: '99px', overflow: 'hidden' },
+  progresUmplut: { height: '100%', backgroundColor: 'var(--accent)', borderRadius: '99px', transition: 'width 0.25s ease' },
   loadingText: { color: 'var(--text-dim)', fontSize: '0.78rem', margin: 0, textAlign: 'center' },
 
   form: { display: 'flex', flexDirection: 'column', gap: '14px' },
