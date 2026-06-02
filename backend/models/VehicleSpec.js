@@ -11,6 +11,8 @@ const vehicleSpecSchema = new mongoose.Schema({
   anStop: { type: Number },
   motor: { type: String, required: true },
   tipCombustibil: { type: String, required: true },
+  // Ulei + filtre: la revizia de ulei (intervalKm / intervalLuni) se schimbă
+  // uleiul și toate filtrele (ulei, aer, polen, combustibil) împreună.
   ulei: {
     tip: { type: String },
     cantitate: { type: Number },
@@ -21,14 +23,11 @@ const vehicleSpecSchema = new mongoose.Schema({
     fata: { type: String },
     spate: { type: String }
   },
-  filtreSchimb: {
-    filtruUlei: { type: String },
-    filtruAer: { type: String },
-    filtryCombustibil: { type: String }
-  },
-  intervalDistributie: { type: Number },
+  presiuneAnvelope: { type: String },        // ex: "2.3 / 2.1 bar" (față / spate)
+  capacitateRezervor: { type: Number },       // litri
+  intervalDistributie: { type: Number },      // km; 0 = lanț de distribuție
   intervalDistributieLuni: { type: Number, default: 0 },
-  intervalLichidFrana: { type: Number }
+  intervalLichidFrana: { type: Number }       // luni
 }, { timestamps: true });
 
 module.exports = mongoose.model('VehicleSpec', vehicleSpecSchema);

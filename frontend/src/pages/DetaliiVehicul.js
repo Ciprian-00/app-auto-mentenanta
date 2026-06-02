@@ -31,6 +31,15 @@ const statusDoc = (data, prag) => {
   return { culoare: '#22d3a5', text: `${zile}z` };
 };
 
+// Norma de emisii, estimată din anul fabricației (etapele europene Euro)
+const normaEmisii = (an) => {
+  if (an >= 2015) return 'Euro 6';
+  if (an >= 2011) return 'Euro 5';
+  if (an >= 2006) return 'Euro 4';
+  if (an >= 2001) return 'Euro 3';
+  return 'Euro 2';
+};
+
 // Status pentru mentenanță (ulei/distribuție/lichid frână). Se calculează data
 // următoare (luni sau ani) și se verifică și depășirea de kilometraj.
 const calcStatus = ({ data, plusLuni, plusAni, kmPrag, kmUltima, kmCurent, prag }) => {
@@ -339,19 +348,18 @@ const DetaliiVehicul = () => {
   // Liniile din tabelul de specificații tehnice
   const liniiSpec = specificatii ? [
     specificatii.ulei?.tip && { label: 'Ulei recomandat', val: `${specificatii.ulei.tip} · ${specificatii.ulei.cantitate}L`, cyan: true },
-    specificatii.ulei?.intervalKm && { label: 'Interval ulei', val: `${specificatii.ulei.intervalKm.toLocaleString()} km / ${specificatii.ulei.intervalLuni} luni` },
+    specificatii.ulei?.intervalKm && { label: 'Schimb ulei + filtre', val: `${specificatii.ulei.intervalKm.toLocaleString()} km / ${specificatii.ulei.intervalLuni} luni` },
     specificatii.anvelope?.fata && { label: 'Anvelope față', val: specificatii.anvelope.fata },
     specificatii.anvelope?.spate && { label: 'Anvelope spate', val: specificatii.anvelope.spate },
-    specificatii.intervalDistributie > 0 && {
-      label: 'Distribuție',
-      val: specificatii.intervalDistributieLuni > 0
-        ? `${specificatii.intervalDistributie.toLocaleString()} km sau ${specificatii.intervalDistributieLuni} luni`
-        : `${specificatii.intervalDistributie.toLocaleString()} km`,
-    },
+    specificatii.presiuneAnvelope && { label: 'Presiune anvelope', val: specificatii.presiuneAnvelope },
+    specificatii.capacitateRezervor && { label: 'Capacitate rezervor', val: `${specificatii.capacitateRezervor} L` },
+    vehicul?.an && { label: 'Normă emisii', val: normaEmisii(vehicul.an) },
+    specificatii.intervalDistributie > 0
+      ? { label: 'Distribuție', val: specificatii.intervalDistributieLuni > 0
+          ? `${specificatii.intervalDistributie.toLocaleString()} km sau ${specificatii.intervalDistributieLuni} luni`
+          : `${specificatii.intervalDistributie.toLocaleString()} km` }
+      : { label: 'Distribuție', val: 'Lanț (fără schimb periodic)' },
     specificatii.intervalLichidFrana && { label: 'Lichid frână', val: `La ${specificatii.intervalLichidFrana} luni` },
-    specificatii.filtreSchimb?.filtruUlei && { label: 'Filtru ulei', val: specificatii.filtreSchimb.filtruUlei, code: true },
-    specificatii.filtreSchimb?.filtruAer && { label: 'Filtru aer', val: specificatii.filtreSchimb.filtruAer, code: true },
-    specificatii.filtreSchimb?.filtryCombustibil && { label: 'Filtru combustibil', val: specificatii.filtreSchimb.filtryCombustibil, code: true },
   ].filter(Boolean) : [];
 
   return (
@@ -574,13 +582,12 @@ const DetaliiVehicul = () => {
                   {i > 0 && <div style={s.rowDiv} />}
                   <div style={s.row}>
                     <span style={s.rowLabel}>{item.label}</span>
-                    {item.code
-                      ? <span style={s.filtruCode}>{item.val}</span>
-                      : <span style={{ ...s.rowVal, ...(item.cyan ? { color: 'var(--accent)' } : {}) }}>{item.val}</span>}
+                    <span style={{ ...s.rowVal, ...(item.cyan ? { color: 'var(--accent)' } : {}) }}>{item.val}</span>
                   </div>
                 </div>
               ))}
             </div>
+            <p style={s.specNota}>La fiecare schimb de ulei se înlocuiesc și filtrele (ulei, aer, polen, combustibil).</p>
           </section>
         )}
 
@@ -835,7 +842,7 @@ const s = {
   recDetalii: { margin: 0, fontSize: '0.74rem', color: 'var(--text-dim)' },
   urgentTag: { background: 'rgba(255,77,77,0.15)', color: '#ff4d4d', fontSize: '0.58rem', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '1px', whiteSpace: 'nowrap', flexShrink: 0 },
   atentieTag: { background: 'rgba(251,191,36,0.15)', color: '#fbbf24', fontSize: '0.58rem', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '1px', whiteSpace: 'nowrap', flexShrink: 0 },
-  filtruCode: { fontSize: '0.82rem', fontWeight: '700', color: 'var(--accent)', fontFamily: 'monospace', background: 'rgba(0,229,255,0.08)', padding: '3px 10px', borderRadius: '5px' },
+  specNota: { fontSize: '0.72rem', color: 'var(--text-dim)', margin: '10px 2px 0', lineHeight: 1.5 },
 
   // Modale
   overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
