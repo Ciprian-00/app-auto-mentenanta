@@ -88,8 +88,8 @@ const preprocesareImagine = async (buffer) => {
   const latime = img.bitmap.width;
   if (latime < 1500) {
     img.scale(2);                 // mărește pozele mici pentru detalii
-  } else if (latime > 2400) {
-    img.scale(2400 / latime);     // micșorează pozele mari (memorie + viteză)
+  } else if (latime > 2000) {
+    img.scale(2000 / latime);     // micșorează pozele mari (memorie + viteză)
   }
 
   img.greyscale().normalize();
@@ -107,6 +107,18 @@ const preprocesareImagine = async (buffer) => {
   return await img.getBuffer(JimpMime.png);
 };
 
+// Worker Tesseract persistent: datele de limbă (ron+eng) se încarcă o singură
+// dată și se refolosesc la fiecare scanare → mult mai rapid decât recognize(),
+// care reîncărca limba de fiecare dată.
+let workerPromise = null;
+const getWorker = () => {
+  if (!workerPromise) {
+    workerPromise = Tesseract.createWorker('ron+eng', 1, { logger: () => {} })
+      .catch((err) => { workerPromise = null; throw err; });
+  }
+  return workerPromise;
+};
+
 // Scanează documentul: preprocesare + OCR + parsare
 const scaneazaDocument = async (buffer) => {
   let procesat;
@@ -116,9 +128,8 @@ const scaneazaDocument = async (buffer) => {
     console.warn('Preprocesare eșuată, folosesc originalul:', err.message);
     procesat = buffer;
   }
-  const { data: { text } } = await Tesseract.recognize(procesat, 'ron+eng', {
-    logger: () => {}
-  });
+  const worker = await getWorker();
+  const { data: { text } } = await worker.recognize(procesat);
   return { textBrut: text, dateExtrase: parseazaDateVehicul(text) };
 };
 
