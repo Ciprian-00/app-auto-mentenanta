@@ -246,7 +246,7 @@ const Scanner = () => {
           <>
             <div style={{ ...s.dropZone, ...(preview ? s.dropZoneActive : {}) }}
               onDrop={handleDrop} onDragOver={e => e.preventDefault()}
-              onClick={() => !preview && inputRef.current.click()}>
+              onClick={() => { if (!preview) { inputRef.current.removeAttribute('capture'); inputRef.current.click(); } }}>
               {preview ? (
                 <img src={preview} alt="preview" style={s.previewImg} />
               ) : (
@@ -264,17 +264,21 @@ const Scanner = () => {
               )}
             </div>
 
-            <input ref={inputRef} type="file" accept="image/*" capture="environment"
+            <input ref={inputRef} type="file" accept="image/*"
               style={{ display: 'none' }} onChange={e => handleFisier(e.target.files[0])} />
 
             <div style={s.butoaneUpload}>
-              <button style={s.btnSecundar} onClick={() => inputRef.current.click()}>
-                <IconUpload /> Fișier
-              </button>
+              {/* Fișier: fără 'capture' → deschide galeria / alegerea fișierului */}
               <button style={s.btnSecundar} onClick={() => {
                 inputRef.current.removeAttribute('capture');
                 inputRef.current.click();
-                setTimeout(() => inputRef.current.setAttribute('capture', 'environment'), 500);
+              }}>
+                <IconUpload /> Fișier
+              </button>
+              {/* Cameră: cu 'capture' → deschide direct camera */}
+              <button style={s.btnSecundar} onClick={() => {
+                inputRef.current.setAttribute('capture', 'environment');
+                inputRef.current.click();
               }}>
                 <IconCamera /> Cameră
               </button>
