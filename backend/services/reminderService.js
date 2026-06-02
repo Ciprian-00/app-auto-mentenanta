@@ -10,6 +10,19 @@ const zileRamase = (dataExpirare) => {
 };
 
 const FIXE = ['ITP', 'RCA', 'Rovinieta', 'Ulei', 'Distributie', 'LichidFrana'];
+const REVIZII = ['Ulei', 'Distributie', 'LichidFrana'];
+
+// Mesajul afișat pentru un reminder, cu verbul la timpul corect în funcție de
+// câte zile au rămas: documentele (ITP/RCA/Rovinietă/custom) primesc „a expirat"
+// dacă data a trecut, altfel „expiră". Reviziile își păstrează mesajul propriu
+// (au formulare specifică, legată de kilometraj/interval).
+const formateazaMesaj = (r, zile) => {
+  if (REVIZII.includes(r.tip)) return r.mesaj;
+  const numeVehicul = r.vehicul ? `${r.vehicul.marca} ${r.vehicul.model}` : '';
+  const data = new Date(r.dataExpirare).toLocaleDateString('ro-RO');
+  const verb = zile < 0 ? 'a expirat' : 'expiră';
+  return `${r.tip} pentru ${numeVehicul} ${verb} pe ${data}`.replace(/\s+/g, ' ').trim();
+};
 
 const genereazaRemindere = async (vehiculId, utilizatorId) => {
   const vehicul = await Vehicle.findById(vehiculId);
@@ -161,9 +174,10 @@ const getRemindereActive = async (utilizatorId) => {
     return {
       ...r,
       zileRamase: zile,
+      mesaj: formateazaMesaj(r, zile),
       status: zile <= 0 ? 'expirat' : zile <= r.zileInainte ? 'urgent' : 'ok'
     };
   });
 };
 
-module.exports = { genereazaRemindere, getRemindereActive, zileRamase };
+module.exports = { genereazaRemindere, getRemindereActive, zileRamase, formateazaMesaj };

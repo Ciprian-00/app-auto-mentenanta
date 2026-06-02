@@ -1,6 +1,7 @@
 const webpush = require('web-push');
 const User = require('../models/User');
 const Reminder = require('../models/Reminder');
+const { formateazaMesaj } = require('./reminderService');
 
 // Configurează cheile VAPID (din .env)
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -53,7 +54,7 @@ const verificaUser = async (user, { fortat = false } = {}) => {
     if (!fortat && r.notificatLa && new Date(r.notificatLa).toISOString().split('T')[0] === azi) continue; // deja azi
 
     const titlu = zile < 0 ? `${r.tip} expirat` : `${r.tip} expiră curând`;
-    const corp = r.mesaj || `${r.tip} pentru ${r.vehicul?.marca || ''} ${r.vehicul?.model || ''}`.trim();
+    const corp = formateazaMesaj(r, zile);
     await trimiteCatreUser(user, { titlu, corp, url: '/notificari' });
 
     r.notificatLa = acum;
