@@ -16,6 +16,15 @@ const REZERVOR = {
   'Octavia': 50, 'Fabia': 45, 'Superb': 66,
   'Yaris': 42, 'Corolla': 50,
   'Focus': 52, 'Fiesta': 42,
+  'Jogger': 50, 'Lodgy': 50,
+  'T-Roc': 50, 'Touran': 58, 'Caddy': 60,
+  'Kamiq': 50, 'Karoq': 55, 'Kodiaq': 60,
+  'RAV4': 55, 'C-HR': 43, 'Auris': 50,
+  'Kuga': 54, 'Puma': 42, 'Mondeo': 62,
+  'Captur': 48, 'Kadjar': 65,
+  'Seria 1': 52, 'X1': 51, 'X3': 65,
+  'A1': 45, 'Q3': 64, 'Q5': 70,
+  'GLC': 66,
 };
 
 const PRESIUNE = {
@@ -28,6 +37,15 @@ const PRESIUNE = {
   'Octavia': '2.3 / 2.1 bar', 'Fabia': '2.2 / 2.1 bar', 'Superb': '2.4 / 2.3 bar',
   'Yaris': '2.2 / 2.1 bar', 'Corolla': '2.3 / 2.2 bar',
   'Focus': '2.3 / 2.1 bar', 'Fiesta': '2.2 / 2.1 bar',
+  'Jogger': '2.3 / 2.3 bar', 'Lodgy': '2.3 / 2.3 bar',
+  'T-Roc': '2.3 / 2.3 bar', 'Touran': '2.4 / 2.4 bar', 'Caddy': '2.4 / 2.5 bar',
+  'Kamiq': '2.3 / 2.3 bar', 'Karoq': '2.3 / 2.3 bar', 'Kodiaq': '2.4 / 2.4 bar',
+  'RAV4': '2.4 / 2.4 bar', 'C-HR': '2.4 / 2.4 bar', 'Auris': '2.3 / 2.2 bar',
+  'Kuga': '2.4 / 2.4 bar', 'Puma': '2.3 / 2.3 bar', 'Mondeo': '2.4 / 2.3 bar',
+  'Captur': '2.3 / 2.3 bar', 'Kadjar': '2.3 / 2.3 bar',
+  'Seria 1': '2.3 / 2.3 bar', 'X1': '2.4 / 2.4 bar', 'X3': '2.4 / 2.4 bar',
+  'A1': '2.3 / 2.1 bar', 'Q3': '2.4 / 2.4 bar', 'Q5': '2.4 / 2.4 bar',
+  'GLC': '2.4 / 2.4 bar',
 };
 
 // Distribuția se determină după familia de motor (mai sigur decât valori per intrare).
@@ -306,6 +324,85 @@ const baza = [
   // Fiesta Mk7 (2017-prezent)
   { marca: 'Ford', model: 'Fiesta', anStart: 2017, anStop: null, motor: '1.0 EcoBoost 95', tipCombustibil: 'Benzina', ulei: { tip: '5W-20', cantitate: 3.8 }, anvelope: { fata: '195/55 R15', spate: '195/55 R15' } },
   { marca: 'Ford', model: 'Fiesta', anStart: 2017, anStop: null, motor: '1.0 EcoBoost 125', tipCombustibil: 'Benzina', ulei: { tip: '5W-20', cantitate: 3.8 }, anvelope: { fata: '195/55 R16', spate: '195/55 R16' } },
+
+  // ===== MODELE SUPLIMENTARE =====
+  // Dacia Jogger (2022-prezent)
+  { marca: 'Dacia', model: 'Jogger', anStart: 2022, anStop: null, motor: '1.0 TCe 110', tipCombustibil: 'Benzina', ulei: { tip: '5W-30', cantitate: 3.8 }, anvelope: { fata: '205/60 R16', spate: '205/60 R16' } },
+  { marca: 'Dacia', model: 'Jogger', anStart: 2022, anStop: null, motor: '1.0 ECO-G 100', tipCombustibil: 'GPL', ulei: { tip: '5W-30', cantitate: 3.8 }, anvelope: { fata: '205/60 R16', spate: '205/60 R16' } },
+  { marca: 'Dacia', model: 'Jogger', anStart: 2023, anStop: null, motor: '1.6 Hybrid 140', tipCombustibil: 'Hibrid', ulei: { tip: '0W-20', cantitate: 4.5 }, anvelope: { fata: '205/60 R16', spate: '205/60 R16' } },
+  // Dacia Lodgy (2012-2022)
+  { marca: 'Dacia', model: 'Lodgy', anStart: 2012, anStop: 2022, motor: '1.6 MPI 85', tipCombustibil: 'Benzina', ulei: { tip: '10W-40', cantitate: 4.8 }, anvelope: { fata: '185/65 R15', spate: '185/65 R15' } },
+  { marca: 'Dacia', model: 'Lodgy', anStart: 2012, anStop: 2022, motor: '1.5 dCi 110', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.5 }, anvelope: { fata: '185/65 R15', spate: '185/65 R15' } },
+
+  // Volkswagen T-Roc (2017-prezent)
+  { marca: 'Volkswagen', model: 'T-Roc', anStart: 2017, anStop: null, motor: '1.0 TSI 115', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 3.6 }, anvelope: { fata: '215/60 R17', spate: '215/60 R17' } },
+  { marca: 'Volkswagen', model: 'T-Roc', anStart: 2017, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.6 }, anvelope: { fata: '215/55 R17', spate: '215/55 R17' } },
+  { marca: 'Volkswagen', model: 'T-Roc', anStart: 2017, anStop: null, motor: '2.0 TDI 150', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.3 }, anvelope: { fata: '215/55 R17', spate: '215/55 R17' } },
+  // Volkswagen Touran (2015-prezent)
+  { marca: 'Volkswagen', model: 'Touran', anStart: 2015, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.6 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  { marca: 'Volkswagen', model: 'Touran', anStart: 2015, anStop: null, motor: '2.0 TDI 150', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.3 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  // Volkswagen Caddy (2015-2020)
+  { marca: 'Volkswagen', model: 'Caddy', anStart: 2015, anStop: 2020, motor: '1.4 TSI 125', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.0 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  { marca: 'Volkswagen', model: 'Caddy', anStart: 2015, anStop: 2020, motor: '2.0 TDI 102', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.3 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+
+  // Skoda Kamiq (2019-prezent)
+  { marca: 'Skoda', model: 'Kamiq', anStart: 2019, anStop: null, motor: '1.0 TSI 110', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 3.6 }, anvelope: { fata: '205/60 R16', spate: '205/60 R16' } },
+  { marca: 'Skoda', model: 'Kamiq', anStart: 2019, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.6 }, anvelope: { fata: '205/55 R17', spate: '205/55 R17' } },
+  // Skoda Karoq (2017-prezent)
+  { marca: 'Skoda', model: 'Karoq', anStart: 2017, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.6 }, anvelope: { fata: '215/55 R17', spate: '215/55 R17' } },
+  { marca: 'Skoda', model: 'Karoq', anStart: 2017, anStop: null, motor: '2.0 TDI 150', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.3 }, anvelope: { fata: '215/55 R17', spate: '215/55 R17' } },
+  // Skoda Kodiaq (2016-prezent)
+  { marca: 'Skoda', model: 'Kodiaq', anStart: 2016, anStop: null, motor: '1.5 TSI 150', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.6 }, anvelope: { fata: '235/55 R18', spate: '235/55 R18' } },
+  { marca: 'Skoda', model: 'Kodiaq', anStart: 2016, anStop: null, motor: '2.0 TDI 150', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.3 }, anvelope: { fata: '235/55 R18', spate: '235/55 R18' } },
+
+  // Toyota RAV4 (2019-prezent)
+  { marca: 'Toyota', model: 'RAV4', anStart: 2019, anStop: null, motor: '2.5 Hybrid 218', tipCombustibil: 'Hibrid', ulei: { tip: '0W-16', cantitate: 4.8 }, anvelope: { fata: '225/60 R18', spate: '225/60 R18' } },
+  // Toyota C-HR (2016-prezent)
+  { marca: 'Toyota', model: 'C-HR', anStart: 2016, anStop: null, motor: '1.2 Turbo 116', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.2 }, anvelope: { fata: '215/60 R17', spate: '215/60 R17' } },
+  { marca: 'Toyota', model: 'C-HR', anStart: 2016, anStop: null, motor: '1.8 Hybrid 122', tipCombustibil: 'Hibrid', ulei: { tip: '0W-20', cantitate: 4.2 }, anvelope: { fata: '225/50 R18', spate: '225/50 R18' } },
+  // Toyota Auris (2012-2018)
+  { marca: 'Toyota', model: 'Auris', anStart: 2012, anStop: 2018, motor: '1.33 VVT-i 99', tipCombustibil: 'Benzina', ulei: { tip: '5W-30', cantitate: 4.2 }, anvelope: { fata: '195/65 R15', spate: '195/65 R15' } },
+  { marca: 'Toyota', model: 'Auris', anStart: 2012, anStop: 2018, motor: '1.4 D-4D 90', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.2 }, anvelope: { fata: '195/65 R15', spate: '195/65 R15' } },
+  { marca: 'Toyota', model: 'Auris', anStart: 2012, anStop: 2018, motor: '1.8 Hybrid 136', tipCombustibil: 'Hibrid', ulei: { tip: '0W-20', cantitate: 4.2 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+
+  // Ford Kuga (2019-prezent)
+  { marca: 'Ford', model: 'Kuga', anStart: 2019, anStop: null, motor: '1.5 EcoBoost 150', tipCombustibil: 'Benzina', ulei: { tip: '5W-20', cantitate: 4.1 }, anvelope: { fata: '225/60 R17', spate: '225/60 R17' } },
+  { marca: 'Ford', model: 'Kuga', anStart: 2019, anStop: null, motor: '1.5 EcoBlue 120', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 5.5 }, anvelope: { fata: '225/60 R17', spate: '225/60 R17' } },
+  // Ford Puma (2019-prezent)
+  { marca: 'Ford', model: 'Puma', anStart: 2019, anStop: null, motor: '1.0 EcoBoost 125', tipCombustibil: 'Benzina', ulei: { tip: '5W-20', cantitate: 4.1 }, anvelope: { fata: '215/55 R17', spate: '215/55 R17' } },
+  // Ford Mondeo (2014-2022)
+  { marca: 'Ford', model: 'Mondeo', anStart: 2014, anStop: 2022, motor: '1.5 EcoBoost 160', tipCombustibil: 'Benzina', ulei: { tip: '5W-20', cantitate: 4.1 }, anvelope: { fata: '215/55 R16', spate: '215/55 R16' } },
+  { marca: 'Ford', model: 'Mondeo', anStart: 2014, anStop: 2022, motor: '2.0 TDCi 150', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 5.6 }, anvelope: { fata: '215/55 R16', spate: '215/55 R16' } },
+
+  // Renault Captur (2013-prezent)
+  { marca: 'Renault', model: 'Captur', anStart: 2013, anStop: null, motor: '0.9 TCe 90', tipCombustibil: 'Benzina', ulei: { tip: '5W-40', cantitate: 3.3 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  { marca: 'Renault', model: 'Captur', anStart: 2013, anStop: null, motor: '1.5 dCi 90', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 3.75 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  { marca: 'Renault', model: 'Captur', anStart: 2019, anStop: null, motor: '1.3 TCe 130', tipCombustibil: 'Benzina', ulei: { tip: '5W-40', cantitate: 4.5 }, anvelope: { fata: '215/60 R17', spate: '215/60 R17' } },
+  // Renault Kadjar (2015-prezent)
+  { marca: 'Renault', model: 'Kadjar', anStart: 2015, anStop: null, motor: '1.3 TCe 140', tipCombustibil: 'Benzina', ulei: { tip: '5W-40', cantitate: 4.5 }, anvelope: { fata: '215/60 R17', spate: '215/60 R17' } },
+  { marca: 'Renault', model: 'Kadjar', anStart: 2015, anStop: null, motor: '1.5 dCi 110', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.5 }, anvelope: { fata: '215/60 R17', spate: '215/60 R17' } },
+
+  // BMW Seria 1 (F20, 2011-2019)
+  { marca: 'BMW', model: 'Seria 1', anStart: 2011, anStop: 2019, motor: '116d 116', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.5 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  { marca: 'BMW', model: 'Seria 1', anStart: 2011, anStop: 2019, motor: '118i 136', tipCombustibil: 'Benzina', ulei: { tip: '0W-30', cantitate: 4.25 }, anvelope: { fata: '205/55 R16', spate: '205/55 R16' } },
+  // BMW X1 (F48, 2015-prezent)
+  { marca: 'BMW', model: 'X1', anStart: 2015, anStop: null, motor: '18d 150', tipCombustibil: 'Diesel', ulei: { tip: '0W-30', cantitate: 5.0 }, anvelope: { fata: '225/55 R17', spate: '225/55 R17' } },
+  { marca: 'BMW', model: 'X1', anStart: 2015, anStop: null, motor: '20i 192', tipCombustibil: 'Benzina', ulei: { tip: '0W-30', cantitate: 4.5 }, anvelope: { fata: '225/55 R17', spate: '225/55 R17' } },
+  // BMW X3 (G01, 2017-prezent)
+  { marca: 'BMW', model: 'X3', anStart: 2017, anStop: null, motor: '20d 190', tipCombustibil: 'Diesel', ulei: { tip: '0W-30', cantitate: 5.25 }, anvelope: { fata: '245/50 R19', spate: '245/50 R19' } },
+
+  // Audi A1 (8X, 2010-2018)
+  { marca: 'Audi', model: 'A1', anStart: 2010, anStop: 2018, motor: '1.6 TDI 90', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.3 }, anvelope: { fata: '185/60 R15', spate: '185/60 R15' } },
+  { marca: 'Audi', model: 'A1', anStart: 2010, anStop: 2018, motor: '1.4 TFSI 122', tipCombustibil: 'Benzina', ulei: { tip: '5W-40', cantitate: 3.6 }, anvelope: { fata: '215/45 R16', spate: '215/45 R16' } },
+  // Audi Q3 (8U, 2011-2018)
+  { marca: 'Audi', model: 'Q3', anStart: 2011, anStop: 2018, motor: '2.0 TDI 140', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 4.5 }, anvelope: { fata: '235/55 R17', spate: '235/55 R17' } },
+  { marca: 'Audi', model: 'Q3', anStart: 2015, anStop: 2018, motor: '1.4 TFSI 150', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 4.6 }, anvelope: { fata: '235/50 R18', spate: '235/50 R18' } },
+  // Audi Q5 (FY, 2017-prezent)
+  { marca: 'Audi', model: 'Q5', anStart: 2017, anStop: null, motor: '2.0 TDI 190', tipCombustibil: 'Diesel', ulei: { tip: '5W-30', cantitate: 5.7 }, anvelope: { fata: '235/60 R18', spate: '235/60 R18' } },
+  { marca: 'Audi', model: 'Q5', anStart: 2017, anStop: null, motor: '2.0 TFSI 252', tipCombustibil: 'Benzina', ulei: { tip: '0W-20', cantitate: 6.4 }, anvelope: { fata: '235/60 R18', spate: '235/60 R18' } },
+
+  // Mercedes-Benz GLC (X253, 2015-prezent)
+  { marca: 'Mercedes-Benz', model: 'GLC', anStart: 2015, anStop: null, motor: 'GLC 220d 194', tipCombustibil: 'Diesel', ulei: { tip: '0W-20', cantitate: 6.5 }, anvelope: { fata: '235/60 R18', spate: '235/60 R18' } },
 
 ];
 
