@@ -60,7 +60,7 @@ const getStatusMasina = (vehicul, prag) => {
   return { textBadge: 'TOTUL OK', mesajStare: 'OPTIM', culoare: '#22d3a5' };
 };
 
-const Vehicule = () => {
+const Vehicule = ({ refreshKey }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const prag = user?.setari?.zileInainteAlerta || 30;
@@ -83,7 +83,10 @@ const Vehicule = () => {
     document.body.style.margin = '0';
     document.body.style.backgroundColor = 'var(--bg)';
     fetchVehicule();
-  }, []);
+    // Re-încarcă lista când se adaugă o mașină din butonul global (App.js
+    // incrementează refreshKey), nu doar la montarea inițială a paginii.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   // Încarcă modelele disponibile pentru marca aleasă
   useEffect(() => {
