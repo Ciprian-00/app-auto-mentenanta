@@ -313,7 +313,9 @@ const DetaliiVehicul = () => {
         toast.success('Intrare adăugată!');
       }
       inchideIstoric();
-      await fetchIstoric();
+      // Reîncarc și mașina/recomandările: un „Schimb ulei" din istoric
+      // sincronizează starea de sus de la Mentenanță.
+      await Promise.all([fetchIstoric(), fetchVehicul(), fetchRecomandari()]);
     } catch { toast.error('Eroare la salvare'); }
   };
 
@@ -321,7 +323,7 @@ const DetaliiVehicul = () => {
     try {
       await api.delete(`/maintenance/${intrareId}`);
       toast.success('Intrare ștearsă');
-      await fetchIstoric();
+      await Promise.all([fetchIstoric(), fetchVehicul(), fetchRecomandari()]);
     } catch { toast.error('Eroare la ștergere'); }
   };
 
