@@ -25,24 +25,39 @@ const formateazaData = (data) => {
   return new Date(data).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-// Calculează starea generală a mașinii din documentul care expiră cel mai repede.
-// Pragul (câte zile înainte e considerat „urgent") vine din setările utilizatorului.
+// Calculează starea generală a mașinii: ia în calcul documentele (ITP/RCA/
+// Rovinietă/custom) ȘI schimbul de ulei (interval standard 10.000 km / 12 luni),
+// apoi raportează cel mai grav element. Pragul „urgent" vine din setări.
 const getStatusMasina = (vehicul, prag) => {
-  const acte = [
+  const items = [
     { nume: 'ITP', data: vehicul.dataITP },
     { nume: 'RCA', data: vehicul.dataRCA },
-    { nume: 'ROVINIETA', data: vehicul.dataRovinieta },
+    { nume: 'ROVINIETĂ', data: vehicul.dataRovinieta },
     ...(vehicul.documenteCustom || []).filter(d => d.dataExpirare).map(d => ({ nume: d.nume, data: d.dataExpirare })),
-  ].filter(act => act.data);
+  ].filter(a => a.data).map(a => ({ nume: a.nume, zile: zileRamase(a.data) }));
 
-  if (acte.length === 0) return { textBadge: 'DATE INCOMPLETE', mesajStare: 'ADAUGĂ ACTE', culoare: 'var(--text-dim)' };
-
-  for (const act of acte) {
-    const zile = zileRamase(act.data);
-    if (zile < 0) return { textBadge: 'ACȚIUNE NECESARĂ', mesajStare: `${act.nume} EXPIRAT!`, culoare: '#ff4d4d' };
-    if (zile <= prag) return { textBadge: 'NECESITĂ ATENȚIE', mesajStare: `${act.nume} expiră în ${zile} zile`, culoare: '#fbbf24' };
+  // Ulei — doar dacă există un punct de referință (data ultimului schimb)
+  const ulei = vehicul.ultimulSchimbUlei;
+  if (ulei?.data) {
+    const urmatoare = new Date(ulei.data);
+    urmatoare.setFullYear(urmatoare.getFullYear() + 1);
+    const kmDepasit = vehicul.kilometrajCurent > 0 && ulei.kilometraj > 0 && (vehicul.kilometrajCurent - ulei.kilometraj) >= 10000;
+    items.push({ nume: 'Ulei', zile: kmDepasit ? -1 : zileRamase(urmatoare), ulei: true });
   }
-  return { textBadge: 'DOCUMENTE OK', mesajStare: 'OPTIM', culoare: '#22d3a5' };
+
+  if (items.length === 0) return { textBadge: 'DATE INCOMPLETE', mesajStare: 'ADAUGĂ DATE', culoare: 'var(--text-dim)' };
+
+  const expirat = items.filter(i => i.zile < 0).sort((a, b) => a.zile - b.zile)[0];
+  if (expirat) {
+    const mesaj = expirat.ulei ? 'SCHIMB ULEI DEPĂȘIT' : `${expirat.nume} EXPIRAT!`;
+    return { textBadge: 'ACȚIUNE NECESARĂ', mesajStare: mesaj, culoare: '#ff4d4d' };
+  }
+  const atentie = items.filter(i => i.zile <= prag).sort((a, b) => a.zile - b.zile)[0];
+  if (atentie) {
+    const mesaj = atentie.ulei ? `Schimb ulei în ${atentie.zile} zile` : `${atentie.nume} expiră în ${atentie.zile} zile`;
+    return { textBadge: 'NECESITĂ ATENȚIE', mesajStare: mesaj, culoare: '#fbbf24' };
+  }
+  return { textBadge: 'TOTUL OK', mesajStare: 'OPTIM', culoare: '#22d3a5' };
 };
 
 const Vehicule = () => {
