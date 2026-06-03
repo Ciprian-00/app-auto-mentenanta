@@ -155,28 +155,46 @@ const getRecomandari = async (req, res) => {
     const acum = new Date();
     const recomandari = [];
 
-    if (vehicul.ultimulSchimbUlei && spec.ulei) {
-      const kmDeLaSchimb = vehicul.kilometrajCurent - vehicul.ultimulSchimbUlei.kilometraj;
-      const luniDeLaSchimb = Math.floor(
-        (acum - new Date(vehicul.ultimulSchimbUlei.data)) / (1000 * 60 * 60 * 24 * 30)
-      );
+    if (spec.ulei) {
+      const ulei = vehicul.ultimulSchimbUlei || {};
+      const detaliiUlei = `Tip ulei recomandat: ${spec.ulei.tip}, Cantitate: ${spec.ulei.cantitate}L`;
 
-      if (kmDeLaSchimb >= spec.ulei.intervalKm * 0.9) {
+      // Fără un punct de referință (data sau kilometrajul ultimului schimb) nu
+      // putem ști de cât timp nu s-a schimbat uleiul — îl invităm să-l adauge,
+      // în loc să presupunem (altfel ar ieși "de la 0 km / din 1970").
+      if (!ulei.data && !(ulei.kilometraj > 0)) {
         recomandari.push({
-          tip: 'Schimb ulei',
-          urgent: kmDeLaSchimb >= spec.ulei.intervalKm,
-          mesaj: `Ai parcurs ${kmDeLaSchimb} km de la ultimul schimb. Intervalul recomandat este ${spec.ulei.intervalKm} km.`,
-          detalii: `Tip ulei recomandat: ${spec.ulei.tip}, Cantitate: ${spec.ulei.cantitate}L`
+          tip: 'Adaugă ultimul schimb de ulei',
+          urgent: false,
+          mesaj: 'Înregistrează data și kilometrajul ultimului schimb de ulei ca să primești recomandări corecte.',
+          detalii: detaliiUlei
         });
-      }
+      } else {
+        // Recomandare după kilometraj — doar dacă știm kilometrajul de referință
+        if (ulei.kilometraj > 0) {
+          const kmDeLaSchimb = vehicul.kilometrajCurent - ulei.kilometraj;
+          if (kmDeLaSchimb >= spec.ulei.intervalKm * 0.9) {
+            recomandari.push({
+              tip: 'Schimb ulei',
+              urgent: kmDeLaSchimb >= spec.ulei.intervalKm,
+              mesaj: `Ai parcurs ${kmDeLaSchimb} km de la ultimul schimb. Intervalul recomandat este ${spec.ulei.intervalKm} km.`,
+              detalii: detaliiUlei
+            });
+          }
+        }
 
-      if (luniDeLaSchimb >= spec.ulei.intervalLuni * 0.9) {
-        recomandari.push({
-          tip: 'Schimb ulei dupa timp',
-          urgent: luniDeLaSchimb >= spec.ulei.intervalLuni,
-          mesaj: `Au trecut ${luniDeLaSchimb} luni de la ultimul schimb. Intervalul recomandat este ${spec.ulei.intervalLuni} luni.`,
-          detalii: `Tip ulei recomandat: ${spec.ulei.tip}, Cantitate: ${spec.ulei.cantitate}L`
-        });
+        // Recomandare după timp — doar dacă știm data ultimului schimb
+        if (ulei.data) {
+          const luniDeLaSchimb = Math.floor((acum - new Date(ulei.data)) / (1000 * 60 * 60 * 24 * 30));
+          if (luniDeLaSchimb >= spec.ulei.intervalLuni * 0.9) {
+            recomandari.push({
+              tip: 'Schimb ulei dupa timp',
+              urgent: luniDeLaSchimb >= spec.ulei.intervalLuni,
+              mesaj: `Au trecut ${luniDeLaSchimb} luni de la ultimul schimb. Intervalul recomandat este ${spec.ulei.intervalLuni} luni.`,
+              detalii: detaliiUlei
+            });
+          }
+        }
       }
     }
 
