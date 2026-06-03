@@ -23,10 +23,12 @@ app.use('/api/specs', require('./routes/specRoutes'));
 app.use('/api/maintenance', require('./routes/maintenanceRoutes'));
 app.use('/api/push', require('./routes/pushRoutes'));
 
-// Verifică zilnic la 09:00 documentele care expiră și trimite notificări push
+// Verifică zilnic la 09:00 (ora României) documentele care expiră și trimite
+// notificări push. Fusul orar e explicit, altfel cron-ul ar folosi UTC-ul
+// serverului (Render) → notificările ar veni la 12:00 vara.
 cron.schedule('0 9 * * *', () => {
   verificaSiTrimite().catch(err => console.error('Eroare cron notificari:', err.message));
-});
+}, { timezone: 'Europe/Bucharest' });
 
 app.get('/', (req, res) => {
   res.json({ message: 'Auto-Mentenanta API functioneaza' });
