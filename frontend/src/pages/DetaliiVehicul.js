@@ -350,7 +350,7 @@ const DetaliiVehicul = () => {
   // Liniile din tabelul de specificații tehnice
   const liniiSpec = specificatii ? [
     specificatii.ulei?.tip && { label: 'Ulei recomandat', val: `${specificatii.ulei.tip} · ${specificatii.ulei.cantitate}L`, cyan: true },
-    specificatii.ulei?.intervalKm && { label: 'Schimb ulei + filtre', val: `${specificatii.ulei.intervalKm.toLocaleString()} km / ${specificatii.ulei.intervalLuni} luni` },
+    specificatii.ulei?.intervalKm && { label: 'Schimb ulei + filtru ulei', val: `${specificatii.ulei.intervalKm.toLocaleString()} km / ${specificatii.ulei.intervalLuni} luni` },
     specificatii.anvelope?.fata && { label: 'Anvelope față', val: specificatii.anvelope.fata },
     specificatii.anvelope?.spate && { label: 'Anvelope spate', val: specificatii.anvelope.spate },
     specificatii.presiuneAnvelope && { label: 'Presiune anvelope', val: specificatii.presiuneAnvelope },
@@ -362,6 +362,14 @@ const DetaliiVehicul = () => {
           : `${specificatii.intervalDistributie.toLocaleString()} km` }
       : { label: 'Distribuție', val: 'Lanț (fără schimb periodic)' },
     specificatii.intervalLichidFrana && { label: 'Lichid frână', val: `La ${specificatii.intervalLichidFrana} luni` },
+    specificatii.intervalFiltruAer?.km && { label: 'Filtru aer', val: `${specificatii.intervalFiltruAer.km.toLocaleString()} km / ${specificatii.intervalFiltruAer.luni} luni` },
+    specificatii.intervalFiltruPolen?.km && { label: 'Filtru polen', val: `${specificatii.intervalFiltruPolen.km.toLocaleString()} km / ${specificatii.intervalFiltruPolen.luni} luni` },
+    specificatii.intervalFiltruCombustibil?.km
+      ? { label: 'Filtru combustibil', val: `${specificatii.intervalFiltruCombustibil.km.toLocaleString()} km / ${specificatii.intervalFiltruCombustibil.luni} luni` }
+      : (specificatii.tipCombustibil && specificatii.tipCombustibil !== 'Diesel' && { label: 'Filtru combustibil', val: 'În rezervor (fără schimb periodic)' }),
+    specificatii.intervalBujii?.km
+      ? { label: 'Bujii', val: `${specificatii.intervalBujii.km.toLocaleString()} km / ${specificatii.intervalBujii.luni} luni` }
+      : (specificatii.tipCombustibil === 'Diesel' && { label: 'Bujii', val: 'Incandescente (schimb la nevoie)' }),
   ].filter(Boolean) : [];
 
   return (
@@ -589,7 +597,7 @@ const DetaliiVehicul = () => {
                 </div>
               ))}
             </div>
-            <p style={s.specNota}>La fiecare schimb de ulei se înlocuiesc și filtrele (ulei, aer, polen, combustibil).</p>
+            <p style={s.specNota}>Intervalele sunt pentru condiții normale de utilizare. Condusul preponderent în oraș, pe distanțe scurte, în praf sau cu remorcă le poate scurta până la jumătate.</p>
           </section>
         )}
 

@@ -50,38 +50,97 @@ const PRESIUNE = {
 
 // Distribuția se determină după familia de motor (mai sigur decât valori per intrare).
 // Întoarce { km, luni }; km = 0 înseamnă lanț de distribuție (nu se schimbă periodic).
+//
+// Valorile de km sunt cele oficiale din manuale (ex. Planul de Service VW pentru
+// Golf/Passat B6: verificare curea PD la 150.000 km, înlocuire 2.0 FSI/TFSI la
+// 180.000 km, benzină 4 cil. verificare de la 90.000 km). Peste km, plafonul de
+// vechime (luni) e factorul real de siguranță — cauciucul îmbătrânește chiar și cu
+// rulaj mic (articol: o curea de 6-7 ani e un risc). Recomandarea iese pe „oricare
+// intervine primul", așa că pentru un șofer obișnuit vârsta (6 ani) declanșează
+// prima, ca în realitate; nicio curea nu trece de 6 ani.
 const LANT = { km: 0, luni: 0 };
+const CUREA_BENZINA_VECHE = { km: 90000, luni: 60 };    // MPI / 16V / Duratec / 1.8T atmosferice
+const CUREA_BENZINA_MODERNA = { km: 150000, luni: 72 }; // TSI EA211 / EcoBoost (art.: noi până la 150k)
+const CUREA_BENZINA_FSI = { km: 180000, luni: 72 };     // 2.0 FSI/TFSI EA113 (manual VW: înlocuire 180k)
+const CUREA_DIESEL_VAG = { km: 150000, luni: 72 };      // TDI pompă-injector (manual VW: verificare 150k)
+const CUREA_DIESEL = { km: 120000, luni: 72 };          // dCi / TDCi / EcoBlue (spec Renault/Ford)
 const distributie = (marca, motor, an) => {
   const m = motor.toLowerCase();
 
   // BMW, Mercedes, Toyota: lanț de distribuție pe toată gama din baza noastră
   if (marca === 'BMW' || marca === 'Mercedes-Benz' || marca === 'Toyota') return LANT;
 
-  // Renault / Dacia: benzină moderne (TCe/SCe/ECO-G/E-Tech) au lanț;
-  // diesel (dCi) și benzină atmosferice vechi (MPI/16V) au curea
+  // Renault / Dacia: benzină moderne (TCe/SCe/ECO-G/E-Tech/Hybrid) au lanț;
+  // diesel (dCi) au curea, iar benzină atmosferice vechi (MPI/16V) tot curea
   if (marca === 'Renault' || marca === 'Dacia') {
-    if (/tce|sce|eco-g|e-tech/.test(m)) return LANT;
-    if (/dci|mpi|16v/.test(m)) return { km: 120000, luni: 120 };
+    if (/tce|sce|eco-g|e-tech|hybrid/.test(m)) return LANT;
+    if (/dci/.test(m)) return CUREA_DIESEL;
+    if (/mpi|16v/.test(m)) return CUREA_BENZINA_VECHE;
     return LANT;
   }
 
-  // Ford: curea de distribuție (umedă la EcoBoost/EcoBlue) pe toată gama
+  // Ford: curea de distribuție pe toată gama (umedă la EcoBoost/EcoBlue)
   if (marca === 'Ford') {
-    if (/tdci|ecoblue/.test(m)) return { km: 180000, luni: 120 };
-    return { km: 150000, luni: 120 };
+    if (/tdci|ecoblue/.test(m)) return CUREA_DIESEL;
+    if (/ecoboost/.test(m)) return CUREA_BENZINA_MODERNA;
+    return CUREA_BENZINA_VECHE;                                 // Duratec atmosferic
   }
 
   // Grup VAG (Volkswagen / Audi / Skoda)
-  if (/tdi/.test(m)) return /1\.9/.test(m) ? { km: 120000, luni: 120 } : { km: 180000, luni: 120 };
+  if (/tdi/.test(m)) return CUREA_DIESEL_VAG;                   // TDI pompă-injector: curea
   if (/tsi|tfsi/.test(m)) {
     const cc = parseFloat(m);                                   // 1.8/2.0 = EA888, 1.2 = EA111 → lanț
     if (cc === 1.8 || cc === 2.0 || cc === 1.2) return LANT;
-    if (cc === 1.4) return an >= 2012 ? { km: 210000, luni: 120 } : LANT; // EA211 curea vs EA111 lanț
-    return { km: 210000, luni: 120 };                           // 1.0 / 1.5 / "35 TFSI" = EA211 curea
+    if (cc === 1.4) return an >= 2012 ? CUREA_BENZINA_MODERNA : LANT; // EA211 curea vs EA111 lanț
+    return CUREA_BENZINA_MODERNA;                               // 1.0 / 1.5 / "35 TFSI" = EA211 curea
   }
-  if (/fsi/.test(m)) return LANT;                               // 2.0 FSI injecție directă: lanț
+  if (/fsi/.test(m)) return CUREA_BENZINA_FSI;                  // 2.0 FSI EA113: curea (manual VW: 180k)
   if (/htp/.test(m)) return LANT;                               // 1.2 HTP 3 cilindri: lanț
-  return { km: 120000, luni: 120 };                             // MPI / 1.8T atmosferice: curea
+  return CUREA_BENZINA_VECHE;                                   // MPI / 1.8T atmosferice: curea
+};
+
+// ── Intervale filtre, bujii și ulei ───────────────────────────────────────
+// Valori oficiale uzuale din planurile de service ale producătorilor (piață EU);
+// confirmate punctual cu Planul de Service VW și auto-abc.eu. Unde producătorul nu
+// publică o cifră exactă pentru un motor anume, se aplică norma pe marcă/familie.
+// Toate respectă regula „oricare intervine primul" (km SAU luni).
+const esteDiesel = (tip) => tip === 'Diesel';
+const estePetrol = (tip) => tip === 'Benzina' || tip === 'GPL' || tip === 'Hibrid';
+
+// Ulei: revizia standard EU e 15.000 km / 1 an (Planul de Service VW: „15.000 km sau
+// 1 an"). Dieselul Dacia/Renault rămâne la 10.000 km (spec Renault, confirmat auto-abc).
+const intervalUlei = (marca, tip) => {
+  if ((marca === 'Dacia' || marca === 'Renault') && esteDiesel(tip)) return { km: 10000, luni: 12 };
+  return { km: 15000, luni: 12 };
+};
+
+const filtruAer = (marca) => {
+  if (marca === 'Dacia' || marca === 'Renault') return { km: 30000, luni: 36 };
+  if (marca === 'Toyota') return { km: 40000, luni: 48 };
+  return { km: 60000, luni: 48 };                              // VAG / BMW / Mercedes / Ford
+};
+
+const filtruPolen = (marca) => {
+  if (marca === 'Dacia' || marca === 'Renault') return { km: 15000, luni: 12 };
+  return { km: 30000, luni: 24 };
+};
+
+// Filtru de combustibil: serviciabil doar la diesel; la benzină e integrat în rezervor
+// (fără schimb periodic) → null, ca să nu afișăm un interval inexistent.
+const filtruCombustibil = (marca, tip) => {
+  if (!esteDiesel(tip)) return null;
+  if (marca === 'Dacia' || marca === 'Renault') return { km: 30000, luni: 36 };
+  if (marca === 'Ford' || marca === 'Toyota') return { km: 40000, luni: 48 };
+  return { km: 60000, luni: 48 };                              // VAG / BMW / Mercedes
+};
+
+// Bujii: doar la benzină/GPL/hibrid; dieselul are bujii incandescente (la nevoie) → null.
+const bujii = (marca, motor, tip) => {
+  if (!estePetrol(tip)) return null;
+  const m = motor.toLowerCase();
+  if (marca === 'Toyota') return { km: 90000, luni: 72 };      // VVT-i iridium long-life
+  if ((marca === 'Dacia' || marca === 'Renault') && /mpi|16v/.test(m)) return { km: 30000, luni: 36 };
+  return { km: 60000, luni: 48 };                              // turbo modern / VAG / BMW / MB / Ford
 };
 
 // Date de bază per motorizare (restul se completează prin reguli mai jos)
@@ -406,19 +465,25 @@ const baza = [
 
 ];
 
-// Completează fiecare intrare cu valorile derivate prin reguli:
-// ulei + filtre la 10.000 km / 12 luni, distribuție după familia de motor,
-// lichid de frână la 24 luni, plus rezervor și presiune anvelope per model.
+// Completează fiecare intrare cu valorile derivate prin reguli: ulei (15.000 km / 1 an,
+// 10.000 la dieselul Dacia/Renault), distribuție după familia de motor, lichid de frână
+// la 24 luni, filtre (aer/polen/combustibil) și bujii per marcă/familie, plus rezervor
+// și presiune anvelope per model.
 const specs = baza.map((s) => {
   const d = distributie(s.marca, s.motor, s.anStart);
+  const ulei = intervalUlei(s.marca, s.tipCombustibil);
   return {
     ...s,
-    ulei: { ...s.ulei, intervalKm: 10000, intervalLuni: 12 },
+    ulei: { ...s.ulei, intervalKm: ulei.km, intervalLuni: ulei.luni },
     presiuneAnvelope: PRESIUNE[s.model] || '2.3 / 2.1 bar',
     capacitateRezervor: REZERVOR[s.model] || null,
     intervalDistributie: d.km,
     intervalDistributieLuni: d.luni,
     intervalLichidFrana: 24,
+    intervalFiltruAer: filtruAer(s.marca),
+    intervalFiltruPolen: filtruPolen(s.marca),
+    intervalFiltruCombustibil: filtruCombustibil(s.marca, s.tipCombustibil), // null la benzină
+    intervalBujii: bujii(s.marca, s.motor, s.tipCombustibil),                // null la diesel
   };
 });
 
