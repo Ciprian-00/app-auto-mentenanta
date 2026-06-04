@@ -11,6 +11,11 @@ const protect = async (req, res, next) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-parola');
+      // Token valid, dar contul nu mai există (ex. cont șters) → 401, nu lăsa
+      // controllerul să acceseze req.user null și să dea 500.
+      if (!req.user) {
+        return res.status(401).json({ mesaj: 'Utilizatorul nu mai există' });
+      }
       next();
     } else {
       res.status(401).json({ mesaj: 'Nu esti autorizat' });
