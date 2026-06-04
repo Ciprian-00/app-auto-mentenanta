@@ -228,7 +228,7 @@ const Vehicule = ({ refreshKey }) => {
             <div key={v._id} style={s.card} onClick={() => navigate(`/vehicule/${v._id}`)}>
 
               <div style={s.cardHeader}>
-                <CarWatermark style={{ left: '50%', top: '52%', transform: 'translate(-50%, -50%)', height: '118px', opacity: 0.4 }} />
+                <CarWatermark style={{ left: '50%', top: '55%', transform: 'translate(-50%, -50%)', height: '125px', opacity: 0.45 }} />
 
                 <div style={s.statusBadge}>
                   <span style={{ ...s.statusDot, backgroundColor: status.culoare, boxShadow: `0 0 7px ${status.culoare}` }} />

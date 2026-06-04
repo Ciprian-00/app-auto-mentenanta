@@ -388,7 +388,7 @@ const DetaliiVehicul = () => {
 
       {/* Antet cu marca, numărul și kilometrajul */}
       <div style={s.hero}>
-        <CarWatermark style={{ right: '20px', top: '44%', transform: 'translateY(-50%)', height: '112px', opacity: 0.15 }} />
+        <CarWatermark style={{ right: '24px', top: '50%', transform: 'translateY(-50%)', height: '150px', opacity: 0.17 }} />
         <div style={s.heroContent}>
           <div style={s.heroTop}>
             <div>
