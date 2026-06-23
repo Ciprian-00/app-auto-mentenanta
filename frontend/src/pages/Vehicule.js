@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { evalueazaScadenta } from '../utils/scadenta';
 import CarWatermark from '../components/CarWatermark';
 import AlegeMetoda from '../components/AlegeMetoda';
 import AdaugaVehiculModal from '../components/AdaugaVehiculModel';
@@ -26,8 +27,8 @@ const formateazaData = (data) => {
 };
 
 // Calculează starea generală a mașinii: ia în calcul documentele (ITP/RCA/
-// Rovinietă/custom) ȘI schimbul de ulei (interval standard 10.000 km / 12 luni),
-// apoi raportează cel mai grav element. Pragul „urgent" vine din setări.
+// Rovinietă/custom) ȘI schimbul de ulei (intervalul real din specificații, atașat
+// de backend), apoi raportează cel mai grav element. Pragul „urgent" vine din setări.
 const getStatusMasina = (vehicul, prag) => {
   const items = [
     { nume: 'ITP', data: vehicul.dataITP },
@@ -36,13 +37,18 @@ const getStatusMasina = (vehicul, prag) => {
     ...(vehicul.documenteCustom || []).filter(d => d.dataExpirare).map(d => ({ nume: d.nume, data: d.dataExpirare })),
   ].filter(a => a.data).map(a => ({ nume: a.nume, zile: zileRamase(a.data) }));
 
-  // Ulei — doar dacă există un punct de referință (data ultimului schimb)
+  // Ulei — doar dacă există un punct de referință (data ultimului schimb).
+  // Aceeași regulă ca recomandările (intervalul real din specificații, 90% / depășire).
   const ulei = vehicul.ultimulSchimbUlei;
   if (ulei?.data) {
-    const urmatoare = new Date(ulei.data);
-    urmatoare.setFullYear(urmatoare.getFullYear() + 1);
-    const kmDepasit = vehicul.kilometrajCurent > 0 && ulei.kilometraj > 0 && (vehicul.kilometrajCurent - ulei.kilometraj) >= 10000;
-    items.push({ nume: 'Ulei', zile: kmDepasit ? -1 : zileRamase(urmatoare), ulei: true });
+    const r = evalueazaScadenta({
+      data: ulei.data,
+      plusLuni: vehicul.intervalUleiLuni || 12,
+      kmInterval: vehicul.intervalUleiKm || 15000,
+      kmUltima: ulei.kilometraj, kmCurent: vehicul.kilometrajCurent, prag,
+    });
+    const zile = r.nivel === 'depasit' ? -1 : r.nivel === 'atentie' ? (r.dinKm ? 0 : r.zile) : r.zile;
+    items.push({ nume: 'Ulei', zile, ulei: true, dinKm: r.dinKm });
   }
 
   if (items.length === 0) return { textBadge: 'DATE INCOMPLETE', mesajStare: 'ADAUGĂ DATE', culoare: 'var(--text-dim)' };
@@ -54,7 +60,9 @@ const getStatusMasina = (vehicul, prag) => {
   }
   const atentie = items.filter(i => i.zile <= prag).sort((a, b) => a.zile - b.zile)[0];
   if (atentie) {
-    const mesaj = atentie.ulei ? `Schimb ulei în ${atentie.zile} zile` : `${atentie.nume} expiră în ${atentie.zile} zile`;
+    const mesaj = atentie.ulei
+      ? (atentie.dinKm ? 'Schimb ulei curând' : `Schimb ulei în ${atentie.zile} zile`)
+      : `${atentie.nume} expiră în ${atentie.zile} zile`;
     return { textBadge: 'NECESITĂ ATENȚIE', mesajStare: mesaj, culoare: '#fbbf24' };
   }
   return { textBadge: 'TOTUL OK', mesajStare: 'OPTIM', culoare: '#22d3a5' };

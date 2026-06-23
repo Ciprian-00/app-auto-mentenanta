@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { evalueazaScadenta } from '../utils/scadenta';
 
 const INTERVALE = ['6L', '1A', 'TOT'];
 const CATEGORII = ['TOATE', 'SERVICE', 'DOC'];
@@ -41,22 +42,22 @@ const getDocDots = (v, prag) => {
   });
 };
 
-// Bulina cu starea schimbului de ulei (interval 1 an sau 10.000 km)
-const dotUlei = (v) => {
-  if (!v.ultimulSchimbUlei?.data) return null;
-  const dataSchimb = new Date(v.ultimulSchimbUlei.data);
-  const urmatoare = new Date(dataSchimb);
-  urmatoare.setFullYear(urmatoare.getFullYear() + 1);
+// Bulina cu starea schimbului de ulei — interval real din specificații (atașat de
+// backend), aceeași regulă ca recomandările: 90% galben / depășire roșu / oricare primul.
+const dotUlei = (v, prag) => {
+  const ulei = v.ultimulSchimbUlei;
+  if (!ulei?.data) return null;
+  const r = evalueazaScadenta({
+    data: ulei.data,
+    plusLuni: v.intervalUleiLuni || 12,
+    kmInterval: v.intervalUleiKm || 15000,
+    kmUltima: ulei.kilometraj, kmCurent: v.kilometrajCurent, prag,
+  });
 
-  const kmLaSchimb = v.ultimulSchimbUlei.kilometraj || 0;
-  const kmCurent = v.kilometrajCurent || 0;
-  const depasitKm = kmCurent > 0 && kmLaSchimb > 0 && (kmCurent - kmLaSchimb) >= 10000;
-  const zile = depasitKm ? -1 : Math.ceil((urmatoare - new Date()) / ZI_MS);
-
-  const color = zile < 0 ? '#ff4d4d' : zile <= 30 ? '#f59e0b' : '#10b981';
-  const sub = zile < 0 ? 'DEPĂȘIT' : zile <= 30 ? `${zile}z` : null;
-  const text = `Ulei · ${dataSchimb.toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' })}`
-    + (v.ultimulSchimbUlei.kilometraj ? ` · ${Number(v.ultimulSchimbUlei.kilometraj).toLocaleString('ro-RO')} km` : '')
+  const color = r.nivel === 'depasit' ? '#ff4d4d' : r.nivel === 'atentie' ? '#f59e0b' : '#10b981';
+  const sub = r.nivel === 'depasit' ? 'DEPĂȘIT' : r.nivel === 'atentie' ? (r.dinKm ? 'Curând' : `${r.zile}z`) : null;
+  const text = `Ulei · ${new Date(ulei.data).toLocaleDateString('ro-RO', { month: 'short', year: 'numeric' })}`
+    + (ulei.kilometraj ? ` · ${Number(ulei.kilometraj).toLocaleString('ro-RO')} km` : '')
     + (sub ? ` · ${sub}` : '');
   return { color, sub, text };
 };
@@ -269,7 +270,7 @@ const Dashboard = ({ refreshKey, onRemindereUpdate }) => {
             <div style={s.listCard}>
               {vehicule.slice(0, 3).map((v, i) => {
                 const dots = getDocDots(v, prag);
-                const ulei = dotUlei(v);
+                const ulei = dotUlei(v, prag);
                 const accentColor = dots.some(d => d.color === '#ff4d4d') ? '#ff4d4d'
                   : dots.some(d => d.color === '#f59e0b') ? '#f59e0b'
                   : '#10b981';

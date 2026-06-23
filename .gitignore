@@ -8,3 +8,6 @@ yarn-debug.log*
 
 # Date OCR Tesseract (se descarca automat la rulare)
 *.traineddata
+
+# Artefact extensie CodeViz
+.codeviz/

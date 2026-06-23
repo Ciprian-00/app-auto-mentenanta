@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { evalueazaScadenta } from '../utils/scadenta';
 import CarWatermark from '../components/CarWatermark';
 
 const SUGESTII_TIP = ['Revizie', 'Schimb ulei', 'Anvelope', 'Frâne', 'Distribuție', 'Reparație', 'ITP', 'Altele'];
@@ -40,20 +41,15 @@ const normaEmisii = (an) => {
   return 'Euro 2';
 };
 
-// Status pentru mentenanță (ulei/distribuție/lichid frână). Se calculează data
-// următoare (luni sau ani) și se verifică și depășirea de kilometraj.
+// Status pentru mentenanță (ulei/distribuție/lichid frână) — folosește aceeași
+// regulă unică (evalueazaScadenta) ca badge-urile și recomandările: avertizare la
+// 90% din interval, depășire la 100%, pe timp SAU kilometraj (oricare intervine primul).
 const calcStatus = ({ data, plusLuni, plusAni, kmPrag, kmUltima, kmCurent, prag }) => {
-  if (!data) return { culoare: 'var(--text-faint)', text: null };
-  const urmatoare = new Date(data);
-  if (plusAni) urmatoare.setFullYear(urmatoare.getFullYear() + plusAni);
-  if (plusLuni) urmatoare.setMonth(urmatoare.getMonth() + plusLuni);
-
-  const depasitKm = kmPrag && kmCurent > 0 && kmUltima > 0 && (kmCurent - kmUltima) >= kmPrag;
-  const zile = depasitKm ? -1 : Math.ceil((urmatoare - new Date()) / ZI_MS);
-
-  const culoare = zile < 0 ? '#ff4d4d' : zile <= prag ? '#fbbf24' : '#22d3a5';
-  const text = zile < 0 ? 'Depășit' : zile <= prag ? `${zile}z` : 'La zi';
-  return { culoare, text };
+  const r = evalueazaScadenta({ data, plusLuni, plusAni, kmInterval: kmPrag, kmUltima, kmCurent, prag });
+  if (r.nivel === 'fara') return { culoare: 'var(--text-faint)', text: null };
+  if (r.nivel === 'depasit') return { culoare: '#ff4d4d', text: 'Depășit' };
+  if (r.nivel === 'atentie') return { culoare: '#fbbf24', text: r.dinKm ? 'Curând' : `${r.zile}z` };
+  return { culoare: '#22d3a5', text: 'La zi' };
 };
 
 // Fereastră modală reutilizată de toate formularele din pagină
@@ -343,7 +339,7 @@ const DetaliiVehicul = () => {
   const ulei = vehicul.ultimulSchimbUlei;
   const dist = vehicul.ultimaDistributie;
   const lichid = vehicul.ultimulLichidFrana;
-  const statusUlei = calcStatus({ data: ulei?.data, plusAni: 1, kmPrag: 10000, kmUltima: ulei?.kilometraj, kmCurent: km, prag: 30 });
+  const statusUlei = calcStatus({ data: ulei?.data, plusLuni: specificatii?.ulei?.intervalLuni || 12, kmPrag: specificatii?.ulei?.intervalKm || 15000, kmUltima: ulei?.kilometraj, kmCurent: km, prag: 30 });
   const statusDist = calcStatus({ data: dist?.data, plusLuni: specificatii?.intervalDistributieLuni || 60, kmPrag: specificatii?.intervalDistributie, kmUltima: dist?.kilometraj, kmCurent: km, prag: 60 });
   const statusLichid = calcStatus({ data: lichid?.data, plusLuni: specificatii?.intervalLichidFrana, prag: 60 });
 
